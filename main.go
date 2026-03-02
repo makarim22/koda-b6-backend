@@ -5,6 +5,7 @@ import (
 	"regexp"
 	"strconv"
 	"strings"
+	"net/http"
 
 	"github.com/gin-gonic/gin"
 	"golang.org/x/crypto/bcrypt"
@@ -65,8 +66,8 @@ func corsMiddleware() gin.HandlerFunc{
 		ctx.Header("Access-Control-Allow-Origin", "http://localhost:5173")
 		ctx.Header("Access-Control-Allow-Headers", "content-type")
 		ctx.GetHeader("Content-Type")
-		if ctx.Request.Method == "options" {
-			ctx.Data(200, "", []byte(""))
+		if ctx.Request.Method == http.MethodOptions {
+			ctx.Data(http.StatusOK, "", []byte(""))
 		} else{
 			ctx.Next()
 		}
