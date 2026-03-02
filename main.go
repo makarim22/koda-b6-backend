@@ -1,12 +1,13 @@
 package main
 
 import (
-	"github.com/gin-gonic/gin"
-	"strconv"
 	"fmt"
-	"strings"
 	"regexp"
-	"golang.org/x/crypto/bcrypt" 
+	"strconv"
+	"strings"
+
+	"github.com/gin-gonic/gin"
+	"golang.org/x/crypto/bcrypt"
 )
 
 type User struct {
@@ -59,9 +60,23 @@ var emailRegex = regexp.MustCompile(`^[a-z0-9._%+\-]+@[a-z0-9.\-]+\.[a-z]{2,4}$`
 
 var nextProductId = 1
 
+func corsMiddleware() gin.HandlerFunc{
+	return func(ctx *gin.Context){
+		ctx.Header("Access-Control-Allow-Origin", "http://localhost:5173")
+		ctx.Header("Access-Control-Allow-Headers", "content-type")
+		ctx.GetHeader("Content-Type")
+		if ctx.Request.Method == "options" {
+			ctx.Data(200, "", []byte(""))
+		} else{
+			ctx.Next()
+		}
+	}
+}
 
 func main() {
 	r := gin.Default()
+
+	r.Use(corsMiddleware())
 
 	r.GET("/", func(ctx *gin.Context) {
 		ctx.Data(200, "text/plain", []byte("Hello!"))
