@@ -6,9 +6,15 @@ import (
 	"strconv"
 	"strings"
 	"net/http"
+	"os"
+	"context"
+	"log"
 
 	"github.com/gin-gonic/gin"
 	"golang.org/x/crypto/bcrypt"
+	"github.com/jackc/pgx/v5"
+	"github.com/joho/godotenv" 
+
 )
 
 type User struct {
@@ -36,15 +42,15 @@ type LoginPayload struct {
 	Password string
 }
 
-// type RegisterPayload struct {
-// 	Fullname string
-// 	Email string
-// 	Password string
-// 	Phone string
-// 	Gender string
-// 	Age int
-// 	Address string
-// }
+type RegisterPayload struct {
+	Fullname string
+	Email string
+	Password string
+	Phone string
+	Gender string
+	Age int
+	Address string
+}
 
 var users = map[int]User{
 	1: {ID: 1, Name: "Budi", Email: "budi@email.com", Password: "hashed123"},
@@ -74,32 +80,53 @@ func corsMiddleware() gin.HandlerFunc{
 	}
 }
 
+var db *pgx.Conn
+
 func main() {
+
+	godotenv.Load()
 	r := gin.Default()
 
 	r.Use(corsMiddleware())
+
+	
+	databaseURL := os.Getenv("DATABASE_URL")
+	if databaseURL == "" {
+		log.Fatal("DATABASE_URL environment variable is not set.")
+	}
+
+	conn, err := pgx.Connect(context.Background(), databaseURL)
+	if err != nil {
+		log.Fatalf("Unable to connect to database: %v\n", err)
+	}
+	db = conn 
+
+	err = db.Ping(context.Background())
+	if err != nil {
+		db.Close(context.Background()) 
+		log.Fatalf("Could not ping database: %v", err)
+	}
+	log.Println("Successfully connected to the database!")
+
+
+	defer conn.Close(context.Background())
 
 	r.GET("/", func(ctx *gin.Context) {
 		ctx.Data(200, "text/plain", []byte("Hello!"))
 	})
 
-	r.GET("/user", func(ctx *gin.Context) {
-       
-		if len (users) == 0 {
-			ctx.JSON(404, gin.H{
-				"error": "No users found",
-			})
+	r.GET("/users", func(ctx *gin.Context) {
+
+		rows, err := conn.Query(context.Background(),
+	    `select id, name, email, password, phone, gender, age, address from users`)
+
+		if err != nil {
 			return
 		}
 
-		userList := make([]User, 0, len(users))
-		for _, user := range users {
-			userList = append(userList, user)
-		}
-
 		ctx.JSON(200, gin.H{
-			"data":  userList,
-			"count": len(userList),
+			"data":  users,
+			"count": len(users),
 		})
 	})
 
