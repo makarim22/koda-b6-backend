@@ -17,16 +17,22 @@ import (
 
 )
 
+// type User struct {
+// 	ID       int    `json:"id"`
+// 	Name     string `json:"full_name"`
+// 	Email    string `json:"email"`
+// 	Password string `json:"password,omitempty"`
+// 	Phone string
+// }
+
 type User struct {
-	ID       int    `json:"id"`
-	Name     string `json:"name"`
-	Email    string `json:"email"`
-	Password string `json:"password,omitempty"`
-	Phone string
-	Gender string
-	Age int
-	Address string
+	ID       int    `json:"id" db:"id"`
+	Name     string `json:"name" db:"full_name"`
+	Email    string `json:"email" db:"email"`
+	Password string `json:"-" db:"password"`
+	Phone    string `json:"phone" db:"phone"`
 }
+
 
 type Product struct {
 	ID int
@@ -118,13 +124,28 @@ func main() {
 	r.GET("/users", func(ctx *gin.Context) {
 
 		rows, err := conn.Query(context.Background(),
-	    `select id, name, email, password, phone, gender, age, address from users`)
-
+			`SELECT id, full_name, email, password, phone FROM users`)
 		if err != nil {
+			fmt.Printf("Error querying users: %v\n", err)
+			ctx.JSON(http.StatusInternalServerError, gin.H{
+				"error": "Failed to retrieve users from database",
+			})
 			return
 		}
 
-		ctx.JSON(200, gin.H{
+		users, err := pgx.CollectRows(rows, pgx.RowToStructByName[User])
+		if err != nil {
+			fmt.Printf("Error collecting rows into structs: %v\n", err)
+			ctx.JSON(http.StatusInternalServerError, gin.H{
+				"error": "Failed to process user data",
+			})
+			return
+		}
+
+		fmt.Println("Users collected:", users)
+		fmt.Println("Number of users:", len(users))
+
+		ctx.JSON(http.StatusOK, gin.H{
 			"data":  users,
 			"count": len(users),
 		})
