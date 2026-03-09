@@ -32,3 +32,7 @@ content-type: application/application/json
 
 ###
 DELETE http://localhost:8888/api/v1/users/2 HTTP/1.1
+
+###
+GET http://localhost:8888/api/v1/products HTTP/1.1
+content-type: application/application/json

@@ -22,7 +22,7 @@ func NewProductRepository(db *pgx.Conn) *ProductRepository {
 
 func (p *ProductRepository) GetAll(ctx context.Context) ([]models.Product, error) {
 	rows, err := p.db.Query(ctx,
-		`SELECT id, name, description, stock, variant_id, size_id FROM products ORDER BY id DESC`)
+		`SELECT id, product_name, description, stock, base_price FROM products ORDER BY id DESC`)
 	if err != nil {
 		return nil, fmt.Errorf("failed to query all products: %w", err)
 	}
@@ -40,8 +40,8 @@ func (p *ProductRepository) GetByID(ctx context.Context, id int) (*models.Produc
 	var product models.Product
 
 	err := p.db.QueryRow(ctx,
-		`SELECT id, name, description, stock, variant_id, size_id FROM products WHERE id = $1`,
-		id).Scan(&product.ID, &product.Name, &product.Description, &product.Stock, &product.VariantId, &product.SizeId)
+		`SELECT id, name, description, stock FROM products WHERE id = $1`,
+		id).Scan(&product.ID, &product.ProductName, &product.Description, &product.Stock,)
 
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
@@ -55,10 +55,10 @@ func (p *ProductRepository) GetByID(ctx context.Context, id int) (*models.Produc
 
 func (p *ProductRepository) Create(ctx context.Context, product *models.Product) error {
 	err := p.db.QueryRow(ctx,
-		`INSERT INTO products (name, description, stock, variant_id, size_id)
-		 VALUES ($1, $2, $3, $4, $5)
+		`INSERT INTO products (name, description, stock)
+		 VALUES ($1, $2, $3)
 		 RETURNING id`,
-		product.Name, product.Description, product.Stock, product.VariantId, product.SizeId).
+		product.ProductName, product.Description, product.Stock).
 		Scan(&product.ID)
 
 	if err != nil {
@@ -74,8 +74,8 @@ func (p *ProductRepository) Update(ctx context.Context, product *models.Product)
 		 SET name = $1, description = $2, stock = $3, variant_id = $4, size_id = $5
 		 WHERE id = $6
 		 RETURNING id, name, description, stock, variant_id, size_id`,
-		product.Name, product.Description, product.Stock, product.VariantId, product.SizeId, product.ID).
-		Scan(&product.ID, &product.Name, &product.Description, &product.Stock, &product.VariantId, &product.SizeId)
+		product.ProductName, product.Description, product.Stock, product.ID).
+		Scan(&product.ID, &product.ProductName, &product.Description, &product.Stock)
 
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {

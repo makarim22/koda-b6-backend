@@ -10,6 +10,7 @@ import (
 
 func SetupRoutes(router *gin.Engine, container *di.Container) {
 	userHandler := container.UserHandler()
+	productHandler := container.ProductHandler()
 
 	api := router.Group("/api/v1")
 	{
@@ -20,6 +21,12 @@ func SetupRoutes(router *gin.Engine, container *di.Container) {
 			users.POST("", userHandler.CreateUser)
 			users.PUT("/:id", userHandler.UpdateUser)
 			users.DELETE("/:id", userHandler.DeleteUser)
+		}
+	}
+	{
+		products := api.Group("/products")
+		{
+			products.GET("", productHandler.GetAllProducts)
 		}
 	}
 }

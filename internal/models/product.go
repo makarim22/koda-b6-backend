@@ -1,12 +1,13 @@
 package models
 
 type Product struct {
-	ID int `json:"id"`
-	Name string`json:"name"`
-	Description string `json:"description"`
-	Stock int `json:"stock"`
-	VariantId int `json:"variant_id"`
-	SizeId int `json:"size_id"`
+	ID int `json:"id" `
+	ProductName string`json:"name" db:"product_name`
+	Description string `json:"description" db:"description"`
+	BasePrice int `json: "price" db:"base_price"`
+	Stock int `json:"stock" db:"stock"`
+	// VariantId int `json:"variant_id"`
+	// SizeId int `json:"size_id"`
 }
 
 
