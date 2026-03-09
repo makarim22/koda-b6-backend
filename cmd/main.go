@@ -2,7 +2,6 @@ package main
 
 import (
 	"fmt"
-	"regexp"
 	"strconv"
 	"strings"
 	"net/http"
@@ -17,61 +16,6 @@ import (
 
 )
 
-// type User struct {
-// 	ID       int    `json:"id"`
-// 	Name     string `json:"full_name"`
-// 	Email    string `json:"email"`
-// 	Password string `json:"password,omitempty"`
-// 	Phone string
-// }
-
-type User struct {
-	ID       int    `json:"id" db:"id"`
-	Name     string `json:"name" db:"full_name"`
-	Email    string `json:"email" db:"email"`
-	Password string `json:"-" db:"password"`
-	Phone    string `json:"phone" db:"phone"`
-}
-
-
-type Product struct {
-	ID int
-	Name string
-	Description string
-	Stock int
-	VariantId int `json:"variant_id"`
-	SizeId int `json:"size_id"`
-}
-
-type LoginPayload struct {
-	Email string
-	Password string
-}
-
-type RegisterPayload struct {
-	Fullname string
-	Email string
-	Password string
-	Phone string
-	Gender string
-	Age int
-	Address string
-}
-
-var users = map[int]User{
-	1: {ID: 1, Name: "Budi", Email: "budi@email.com", Password: "hashed123"},
-	2: {ID: 2, Name: "Siti", Email: "siti@email.com", Password: "hashed456"},
-}
-
-var products = map[int]Product{}
-
-var nextID = 3
-
-var userEmails = map[string]int{}
-
-var emailRegex = regexp.MustCompile(`^[a-z0-9._%+\-]+@[a-z0-9.\-]+\.[a-z]{2,4}$`)
-
-var nextProductId = 1
 
 func corsMiddleware() gin.HandlerFunc{
 	return func(ctx *gin.Context){
@@ -152,25 +96,44 @@ func main() {
 	})
 
 	r.GET("/user/:id", func(ctx *gin.Context) {
-		id := ctx.Param("id")
-		userId, err := strconv.Atoi(id)
+		idParam := ctx.Param("id")
+		userID, err := strconv.Atoi(idParam)
 		if err != nil {
-			ctx.JSON(400, gin.H{
-				"error": "Invalid user ID",
+			ctx.JSON(http.StatusBadRequest, gin.H{
+				"error": "Invalid user ID format",
 			})
 			return
 		}
 
-		user , exists := users[userId]
-		if !exists {
-          ctx.JSON(400, gin.H{
-			"error" : "tidak dapat menemukan user",
-		  })
-		  return
+		rows, err := conn.Query(
+			context.Background(),
+			`SELECT id, full_name, email, password, phone FROM users WHERE id = $1`,
+			userID,
+		)
+		if err != nil {
+			fmt.Printf("Error querying user: %v\n", err)
+			ctx.JSON(http.StatusInternalServerError, gin.H{
+				"error": "Failed to retrieve user data",
+			})
+			return
 		}
 
-		
-	    ctx.JSON(200, user)
+		user, err := pgx.CollectOneRow(rows, pgx.RowToStructByName[User])
+		if err != nil {
+			if err == pgx.ErrNoRows {
+				ctx.JSON(http.StatusNotFound, gin.H{
+					"error": fmt.Sprintf("User with ID %d not found", userID),
+				})
+			} else {
+				fmt.Printf("Error collecting user row into struct: %v\n", err)
+				ctx.JSON(http.StatusInternalServerError, gin.H{
+					"error": "Failed to retrieve user data",
+				})
+			}
+			return
+		}
+
+		ctx.JSON(http.StatusOK, user)
 
 	})
 

@@ -1,4 +1,4 @@
 
-GET http://localhost:8888/users HTTP/1.1
+GET http://localhost:8888/user/5 HTTP/1.1
 content-type: application/application/json
 
