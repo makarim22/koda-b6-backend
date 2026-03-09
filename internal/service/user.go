@@ -66,6 +66,7 @@ func (s *UserService) CreateUser(ctx context.Context, user *models.User) error {
 }
 
 func (s *UserService) UpdateUser(ctx context.Context, user *models.User) error {
+	fmt.Println("user", user)
 	if user.ID == 0  {
 		return errors.New("invalid User Id")
 	}
@@ -90,7 +91,7 @@ func (s *UserService) DeleteUser(ctx context.Context, id string) error {
 	idInt, err := strconv.Atoi(id)
 
 	fmt.Println(idInt)
-	
+
 	err = s.userRepo.Delete(ctx, idInt)
 	if err != nil {
 		return errors.New("failed to delete user")
