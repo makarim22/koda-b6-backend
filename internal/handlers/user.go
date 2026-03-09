@@ -85,32 +85,40 @@ func (h *UserHandler) CreateUser(c *gin.Context) {
 	})
 }
 
-// func (h *UserHandler) UpdateUser(c *gin.Context) {
-// 	id := c.Param("id")
-// 	var user models.User
+func (h *UserHandler) UpdateUser(c *gin.Context) {
+	idParam := c.Param("id")
 
-// 	if err := c.ShouldBindJSON(&user); err != nil {
-// 		c.JSON(http.StatusBadRequest, gin.H{
-// 			"error": "Invalid request body",
-// 		})
-// 		return
-// 	}
+	id, err := strconv.Atoi(idParam)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": "Invalid user ID format",
+		})
+		return
+	}
+	var user models.User
 
-// 	user.ID = id
+	if err := c.ShouldBindJSON(&user); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": "Invalid request body",
+		})
+		return
+	}
 
-// 	err := h.userService.UpdateUser(c.Request.Context(), &user)
-// 	if err != nil {
-// 		c.JSON(http.StatusInternalServerError, gin.H{
-// 			"error": err.Error(),
-// 		})
-// 		return
-// 	}
+	user.ID = id
 
-// 	c.JSON(http.StatusOK, gin.H{
-// 		"message": "User updated successfully",
-// 		"data":    user,
-// 	})
-// }
+	err = h.userService.UpdateUser(c.Request.Context(), &user)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error": err.Error(),
+		})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"message": "User updated successfully",
+		"data":    user,
+	})
+}
 
 
 func (h *UserHandler) DeleteUser(c *gin.Context) {

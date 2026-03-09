@@ -4,6 +4,7 @@ import (
 	"koda-b6-backend/internal/handlers"
 	"koda-b6-backend/internal/repository"
 	"koda-b6-backend/internal/service"
+	"fmt"
 
 	"github.com/jackc/pgx/v5"
 )
@@ -17,14 +18,18 @@ type Container struct {
 	userHandler *handlers.UserHandler
 }
 
-func NewContainer(db *pgx.Conn) *Container {
+func NewContainer(db *pgx.Conn) (*Container, error) {
+	if db == nil {
+		return nil, fmt.Errorf("database connection cannot be nil")
+	}
+
 	container := &Container{
 		db: db,
 	}
 
 	container.initDependencies()
 
-	return container
+	return container, nil
 }
 
 func  (c *Container) initDependencies(){

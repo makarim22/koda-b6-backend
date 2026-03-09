@@ -57,7 +57,6 @@ func (u *UserRepository) Create(ctx context.Context, user *models.User) error {
 	return err
 }
 
-// Update mengubah data user
 func (u *UserRepository) Update(ctx context.Context, user *models.User) error {
 	_, err := u.db.Exec(ctx,
 		`UPDATE users SET full_name = $1, email = $2, password = $3, phone = $4 
@@ -67,11 +66,10 @@ func (u *UserRepository) Update(ctx context.Context, user *models.User) error {
 	return err
 }
 
-// Delete menghapus user
-func (u *UserRepository) Delete(ctx context.Context, id string) error {
+func (u *UserRepository) Delete(ctx context.Context, idInt int) error {
 	_, err := u.db.Exec(ctx,
 		`DELETE FROM users WHERE id = $1`,
-		id)
+		idInt)
 	
 	return err
 }

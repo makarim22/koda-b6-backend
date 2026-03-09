@@ -3,8 +3,10 @@ package service
 import (
 	"context"
 	"errors"
+	"fmt"
 	"koda-b6-backend/internal/models"
 	"koda-b6-backend/internal/repository"
+	"strconv"
 )
 
 type UserService struct {
@@ -64,7 +66,7 @@ func (s *UserService) CreateUser(ctx context.Context, user *models.User) error {
 }
 
 func (s *UserService) UpdateUser(ctx context.Context, user *models.User) error {
-	if user.ID < 0  {
+	if user.ID == 0  {
 		return errors.New("invalid User Id")
 	}
 
@@ -85,7 +87,11 @@ func (s *UserService) DeleteUser(ctx context.Context, id string) error {
 		return errors.New("user ID cannot be empty")
 	}
 
-	err := s.userRepo.Delete(ctx, id)
+	idInt, err := strconv.Atoi(id)
+
+	fmt.Println(idInt)
+	
+	err = s.userRepo.Delete(ctx, idInt)
 	if err != nil {
 		return errors.New("failed to delete user")
 	}
