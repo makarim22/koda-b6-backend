@@ -28,6 +28,8 @@ func SetupRoutes(router *gin.Engine, container *di.Container) {
 		{
 			products.GET("", productHandler.GetAllProducts)
 			products.GET("/:id", productHandler.GetById)
+			products.POST("", productHandler.CreateProduct)
+			products.PUT("/:id", productHandler.UpdateProduct)
 		}
 	}
 }

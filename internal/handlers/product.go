@@ -1,11 +1,11 @@
 package handlers
 
 import (
-	// "koda-b6-backend/internal/models"
+	// "context"
+	"koda-b6-backend/internal/models"
 	"koda-b6-backend/internal/service"
 	"net/http"
 	"strconv"
-
 
 	"github.com/gin-gonic/gin"
 )
@@ -56,6 +56,67 @@ func(h *ProductHandler) GetById (c *gin.Context) {
 	}
 	c.JSON(http.StatusOK, gin.H{
 		"message": "berhasil mengambil products",
+		"data":    product,
+	})
+}
+
+func (h *ProductHandler) CreateProduct (c *gin.Context) {
+	var product models.Product
+
+	if err := c.ShouldBindJSON(&product); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": "Invalid request body",
+		})
+		return
+	}
+
+	err := h.productService.CreateProduct(c.Request.Context(), &product)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error": err.Error(),
+		})
+		return
+	}
+
+	c.JSON(http.StatusCreated, gin.H{
+		"message": "Product created successfully",
+		"data":    product,
+	})
+
+}
+
+func (h *ProductHandler) UpdateProduct (c *gin.Context){
+	idParam := c.Param("id")
+
+	id, err := strconv.Atoi(idParam)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": "Invalid user ID format",
+		})
+		return
+	}
+
+	var product models.Product
+
+	if err := c.ShouldBindJSON(&product); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": "Invalid request body",
+		})
+		return
+	}
+
+    product.ID = id
+
+	err = h.productService.UpdateProduct(c.Request.Context(), &product)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error": err.Error(),
+		})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"message": "Product updated successfully",
 		"data":    product,
 	})
 }

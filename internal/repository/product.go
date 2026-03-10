@@ -55,10 +55,10 @@ func (p *ProductRepository) GetByID(ctx context.Context, id int) (*models.Produc
 
 func (p *ProductRepository) Create(ctx context.Context, product *models.Product) error {
 	err := p.db.QueryRow(ctx,
-		`INSERT INTO products (name, description, stock)
-		 VALUES ($1, $2, $3)
+		`INSERT INTO products (product_name, description, stock, base_price)
+		 VALUES ($1, $2, $3, $4)
 		 RETURNING id`,
-		product.ProductName, product.Description, product.Stock).
+		product.ProductName, product.Description, product.Stock, product.BasePrice).
 		Scan(&product.ID)
 
 	if err != nil {
@@ -71,11 +71,11 @@ func (p *ProductRepository) Create(ctx context.Context, product *models.Product)
 func (p *ProductRepository) Update(ctx context.Context, product *models.Product) error {
 	err := p.db.QueryRow(ctx,
 		`UPDATE products 
-		 SET name = $1, description = $2, stock = $3, variant_id = $4, size_id = $5
-		 WHERE id = $6
-		 RETURNING id, name, description, stock, variant_id, size_id`,
-		product.ProductName, product.Description, product.Stock, product.ID).
-		Scan(&product.ID, &product.ProductName, &product.Description, &product.Stock)
+		 SET product_name = $1, description = $2, stock = $3, base_price = $4
+		 WHERE id = $5
+		 RETURNING id, name, description, stock, base_price`,
+		product.ProductName, product.Description, product.Stock, product.BasePrice, product.ID).
+		Scan(&product.ID, &product.ProductName, &product.Description, &product.Stock, &product.BasePrice)
 
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {

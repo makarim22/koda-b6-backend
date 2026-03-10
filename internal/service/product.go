@@ -42,3 +42,36 @@ func (p *ProductService) GetProductByID(ctx context.Context, id int) (*models.Pr
 	
 	return product, nil
 }
+
+func (p *ProductService) CreateProduct (ctx context.Context, product *models.Product) error{
+
+	existingProduct, _ := p.productRepo.GetByID(ctx, product.ID)
+	if existingProduct != nil {
+		return errors.New("product already exists")
+	}
+
+	err := p.productRepo.Create(ctx, product)
+	if err != nil {
+		return errors.New("failed to create product")
+	}
+
+	return nil
+}
+
+func (p *ProductService) UpdateProduct (ctx context.Context, product *models.Product) error{
+	
+	if product.ID == 0  {
+		return errors.New("invalid Product Id")
+	}
+
+	if product.ProductName == "" {
+		return errors.New("product name is required")
+	}
+
+	err := p.productRepo.Update(ctx, product)
+	if err != nil {
+		return errors.New("failed to update product")
+	}
+
+	return nil
+}
