@@ -32,3 +32,13 @@ func (p *ProductService) GetAllProducts(ctx context.Context) ([]models.Product, 
 
 	return products, nil
 }
+
+func (p *ProductService) GetProductByID(ctx context.Context, id int) (*models.Product, error) {
+	product, err := p.productRepo.GetByID(ctx, id)
+	
+	if err != nil {
+		return nil, errors.New("gagal mengambil product")
+	}
+	
+	return product, nil
+}

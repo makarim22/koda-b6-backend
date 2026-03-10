@@ -27,6 +27,7 @@ func SetupRoutes(router *gin.Engine, container *di.Container) {
 		products := api.Group("/products")
 		{
 			products.GET("", productHandler.GetAllProducts)
+			products.GET("/:id", productHandler.GetById)
 		}
 	}
 }

@@ -4,7 +4,7 @@ import (
 	// "koda-b6-backend/internal/models"
 	"koda-b6-backend/internal/service"
 	"net/http"
-	// "strconv"
+	"strconv"
 
 
 	"github.com/gin-gonic/gin"
@@ -32,5 +32,30 @@ func (h *ProductHandler) GetAllProducts(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{
 		"message": "berhasil mengambil products",
 		"data":    products,
+	})
+}
+
+
+func(h *ProductHandler) GetById (c *gin.Context) {
+	id := c.Param("id")
+
+	intId, err := strconv.Atoi(id)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": "invalid user ID format - must be a number",
+		})
+		return
+	}
+
+	product, err := h.productService.GetProductByID(c.Request.Context(), intId )
+		if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error": err.Error(),
+		})
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{
+		"message": "berhasil mengambil products",
+		"data":    product,
 	})
 }
