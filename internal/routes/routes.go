@@ -13,7 +13,7 @@ func SetupRoutes(router *gin.Engine, container *di.Container) {
 	productHandler := container.ProductHandler()
 	forgotPasswordHandler := container.ForgotPasswordHandler()
 
-	api := router.Group("/api/v1")
+	api := router.Group("/admin")
 	{
 		users := api.Group("/users")
 		{
