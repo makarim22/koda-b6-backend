@@ -11,6 +11,7 @@ import (
 func SetupRoutes(router *gin.Engine, container *di.Container) {
 	userHandler := container.UserHandler()
 	productHandler := container.ProductHandler()
+	forgotPasswordHandler := container.ForgotPasswordHandler()
 
 	api := router.Group("/api/v1")
 	{
@@ -30,6 +31,12 @@ func SetupRoutes(router *gin.Engine, container *di.Container) {
 			products.GET("/:id", productHandler.GetById)
 			products.POST("", productHandler.CreateProduct)
 			products.PUT("/:id", productHandler.UpdateProduct)
+		}
+	}
+	{
+		forgotPasswords := api.Group("/auth/forgot-password")
+		{
+			forgotPasswords.POST("", forgotPasswordHandler.ResetPassword)
 		}
 	}
 }
