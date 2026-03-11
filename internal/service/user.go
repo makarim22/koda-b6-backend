@@ -19,7 +19,6 @@ func NewUserService(userRepo *repository.UserRepository) *UserService {
 	}
 }
 
-
 func (s *UserService) GetAllUsers(ctx context.Context) ([]models.User, error) {
 	users, err := s.userRepo.GetAll(ctx)
 	if err != nil {
@@ -33,13 +32,25 @@ func (s *UserService) GetAllUsers(ctx context.Context) ([]models.User, error) {
 	return users, nil
 }
 
-
 func (s *UserService) GetUserByID(ctx context.Context, id int) (*models.User, error) {
 	if id < 0 {
 		return nil, errors.New("Invalid user id")
 	}
 
 	user, err := s.userRepo.GetByID(ctx, id)
+	if err != nil {
+		return nil, errors.New("user not found")
+	}
+
+	return user, nil
+}
+
+func (s *UserService) GetUserByEmail(ctx context.Context, email string) (*models.User, error) {
+	if email == "" {
+		return nil, errors.New("empty email")
+	}
+
+	user, err := s.userRepo.GetByEmail(ctx, email)
 	if err != nil {
 		return nil, errors.New("user not found")
 	}
@@ -67,7 +78,7 @@ func (s *UserService) CreateUser(ctx context.Context, user *models.User) error {
 
 func (s *UserService) UpdateUser(ctx context.Context, user *models.User) error {
 	fmt.Println("user", user)
-	if user.ID == 0  {
+	if user.ID == 0 {
 		return errors.New("invalid User Id")
 	}
 
