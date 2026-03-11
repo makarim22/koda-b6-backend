@@ -1,0 +1,54 @@
+package handlers
+
+import (
+	"koda-b6-backend/internal/models"
+	"koda-b6-backend/internal/service"
+	"net/http"
+
+	"github.com/gin-gonic/gin"
+)
+
+type AuthHandler struct {
+	userService *service.UserService
+	authService *service.AuthService
+}
+
+func NewAuthHandler(userService *service.UserService, authService *service.AuthService) *AuthHandler {
+	return &AuthHandler{
+		userService: userService,
+		authService: authService,
+	}
+}
+
+func (h *AuthHandler) Register(c *gin.Context) {
+	var req models.RegisterRequest
+
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, models.ApiResponse{
+			Success: false,
+			Message: "Invalid request: " + err.Error(),
+		})
+		return
+	}
+
+	ctx := c.Request.Context()
+
+	// Call service to register user
+	user, err := h.userService.CreateUserNew(ctx, &req)
+	if err != nil {
+		c.JSON(http.StatusConflict, models.ApiResponse{
+			Success: false,
+			Message: err.Error(),
+		})
+		return
+	}
+
+	c.JSON(http.StatusCreated, models.ApiResponse{
+		Success: true,
+		Message: "User registered successfully",
+		Data: models.UserResponse{
+			ID:    user.ID,
+			Email: user.Email,
+		},
+	})
+}

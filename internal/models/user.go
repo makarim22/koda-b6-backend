@@ -24,8 +24,10 @@ type RegisterPayload struct {
 }
 
 type RegisterRequest struct {
+	Name     string `json:"name" binding:"required"`
 	Email    string `json:"email" binding:"required,email"`
 	Password string `json:"password" binding:"required,min=6"`
+	Phone    string `json:"phone"`
 }
 
 type LoginRequest struct {
@@ -37,4 +39,16 @@ type AuthResponse struct {
 	Success bool   `json:"success"`
 	Message string `json:"message"`
 	User    *User  `json:"user,omitempty"`
+}
+
+type ApiResponse struct {
+	Success bool        `json:"success"`
+	Message string      `json:"message"`
+	Data    interface{} `json:"data,omitempty"`
+}
+
+type UserResponse struct {
+	ID    int    `json:"id"`
+	Name  string `json:"name"`
+	Email string `json:"email"`
 }

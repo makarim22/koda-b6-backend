@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"koda-b6-backend/internal/lib"
 	"koda-b6-backend/internal/models"
 	"koda-b6-backend/internal/repository"
 	"strconv"
@@ -74,6 +75,53 @@ func (s *UserService) CreateUser(ctx context.Context, user *models.User) error {
 	}
 
 	return nil
+}
+
+func (s *UserService) CreateUserNew(ctx context.Context, req *models.RegisterRequest) (*models.User, error) {
+	// Validate input
+	if req.Email == "" || req.Name == "" {
+		return nil, errors.New("email and name are required")
+	}
+
+	if !lib.IsValidEmail(req.Email) {
+		return nil, errors.New("invalid email format")
+	}
+
+	if len(req.Password) < 6 {
+		return nil, errors.New("password must be at least 6 characters")
+	}
+
+	// Check if user already exists
+	existingUser, _ := s.userRepo.GetByEmail(ctx, req.Email)
+	if existingUser != nil {
+		return nil, errors.New("email already registered")
+	}
+
+	// Hash password
+	hashedPassword, err := lib.HashPassword(req.Password)
+	if err != nil {
+		return nil, fmt.Errorf("failed to hash password: %w", err)
+	}
+
+	// Create user model
+	user := &models.User{
+		Name:     req.Name,
+		Email:    req.Email,
+		Password: hashedPassword,
+	}
+
+	// Save to repository
+	err = s.userRepo.Create(ctx, user)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create user: %w", err)
+	}
+
+	// Return user without password hash
+	return &models.User{
+		ID:    user.ID,
+		Name:  user.Name,
+		Email: user.Email,
+	}, nil
 }
 
 func (s *UserService) UpdateUser(ctx context.Context, user *models.User) error {
