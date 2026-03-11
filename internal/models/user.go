@@ -9,27 +9,32 @@ type User struct {
 }
 
 type LoginPayload struct {
-	Email string `json:"email"`
+	Email    string `json:"email"`
 	Password string `json:"password"`
 }
 
 type RegisterPayload struct {
 	Fullname string `json:"full_name"`
-	Email string `json:"email"`
+	Email    string `json:"email"`
 	Password string `json:"password"`
-	Phone string `json:"phone"`
-	Gender string `json:"gender"`
-	Age int `json:"age"`
-	Address string `json:"address"`
+	Phone    string `json:"phone"`
+	Gender   string `json:"gender"`
+	Age      int    `json:"age"`
+	Address  string `json:"address"`
 }
 
-// var users = map[int]User{
-// 	1: {ID: 1, Name: "Budi", Email: "budi@email.com", Password: "hashed123"},
-// 	2: {ID: 2, Name: "Siti", Email: "siti@email.com", Password: "hashed456"},
-// }
+type RegisterRequest struct {
+	Email    string `json:"email" binding:"required,email"`
+	Password string `json:"password" binding:"required,min=6"`
+}
 
-// var nextID = 3
+type LoginRequest struct {
+	Email    string `json:"email" binding:"required,email"`
+	Password string `json:"password" binding:"required"`
+}
 
-// var userEmails = map[string]int{}
-
-// var emailRegex = regexp.MustCompile(`^[a-z0-9._%+\-]+@[a-z0-9.\-]+\.[a-z]{2,4}$`)
+type AuthResponse struct {
+	Success bool   `json:"success"`
+	Message string `json:"message"`
+	User    *User  `json:"user,omitempty"`
+}
