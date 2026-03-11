@@ -4,6 +4,8 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	//"github.com/matthewhartstonge/argon2"
+	"koda-b6-backend/internal/models"
 	"koda-b6-backend/internal/repository"
 	"log"
 )
@@ -36,6 +38,43 @@ func (s *ForgotPasswordService) ForgotPassword(ctx context.Context, email string
 
 	fmt.Println("OTP codenya", forgotPassword.CodeOTP)
 
+	return nil
+
+}
+
+func (s *ForgotPasswordService) ResetPassword(ctx context.Context, req models.ResetPasswordRequest) error {
+
+	if req.NewPassword != req.ConfirmPassword {
+		return errors.New("password tidak sesuai")
+	}
+
+	otp, err := s.forgotPasswordRepo.GetDataByEmail(ctx, req.Email)
+	fmt.Println("otp", otp)
+	if err != nil {
+		return err
+	}
+
+	user, err := s.userRepo.GetByEmail(ctx, req.Email)
+	if err != nil {
+		log.Printf("ResetPassword: gagal menemukan user dengan email - email: %s", req.Email)
+		return errors.New("user tidak ditemukan")
+	}
+
+	//todos
+	//hashedPassword, err := argon2.Hash(req.NewPassword, argon2.DefaultConfig())
+	//if err != nil {
+	//	log.Printf("ResetPassword: failed to hash password - userID: %d", user.ID)
+	//	return errors.New("failed to reset password")
+	//}
+
+	if err := s.userRepo.UpdatePassword(ctx, req.NewPassword, user.ID); err != nil {
+		log.Printf("ResetPassword: gagal mengupdate password - userID: %d, error: %v", user.ID, err)
+		return fmt.Errorf("gagal mengupdate password: %w", err)
+	}
+
+	_ = s.forgotPasswordRepo.DeleteDataByCode(ctx, req.CodeOTP)
+
+	log.Printf("ResetPassword: success - userID: %d, email: %s", user.ID, req.Email)
 	return nil
 
 }

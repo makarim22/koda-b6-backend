@@ -79,11 +79,11 @@ func (u *UserRepository) Update(ctx context.Context, user *models.User) error {
 	return err
 }
 
-func (u *UserRepository) UpdatePassword(ctx context.Context, user *models.User) error {
+func (u *UserRepository) UpdatePassword(ctx context.Context, password string, id int) error {
 	_, err := u.db.Exec(ctx,
 		`UPDATE users SET password = $1
 		 WHERE id = $2`,
-		user.Password, user.ID)
+		password, id)
 
 	return err
 }
