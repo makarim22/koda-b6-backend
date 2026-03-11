@@ -10,3 +10,10 @@ type ForgotPassword struct {
 	CreatedAt time.Time `db:"created_at" json:"created_at"`
 	UpdatedAt time.Time `db:"updated_at" json:"updated_at"`
 }
+
+type ResetPasswordRequest struct {
+	Email           string `json:"email" validate:"required,email"`
+	CodeOTP         string `json:"code_otp" validate:"required"`
+	NewPassword     string `json:"new_password" validate:"required,min=8,max=128"`
+	ConfirmPassword string `json:"confirm_password" validate:"required,min=8,max=128"`
+}
