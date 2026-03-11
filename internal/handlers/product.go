@@ -35,8 +35,7 @@ func (h *ProductHandler) GetAllProducts(c *gin.Context) {
 	})
 }
 
-
-func(h *ProductHandler) GetById (c *gin.Context) {
+func (h *ProductHandler) GetById(c *gin.Context) {
 	id := c.Param("id")
 
 	intId, err := strconv.Atoi(id)
@@ -47,8 +46,8 @@ func(h *ProductHandler) GetById (c *gin.Context) {
 		return
 	}
 
-	product, err := h.productService.GetProductByID(c.Request.Context(), intId )
-		if err != nil {
+	product, err := h.productService.GetProductByID(c.Request.Context(), intId)
+	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"error": err.Error(),
 		})
@@ -60,7 +59,7 @@ func(h *ProductHandler) GetById (c *gin.Context) {
 	})
 }
 
-func (h *ProductHandler) CreateProduct (c *gin.Context) {
+func (h *ProductHandler) CreateProduct(c *gin.Context) {
 	var product models.Product
 
 	if err := c.ShouldBindJSON(&product); err != nil {
@@ -85,7 +84,7 @@ func (h *ProductHandler) CreateProduct (c *gin.Context) {
 
 }
 
-func (h *ProductHandler) UpdateProduct (c *gin.Context){
+func (h *ProductHandler) UpdateProduct(c *gin.Context) {
 	idParam := c.Param("id")
 
 	id, err := strconv.Atoi(idParam)
@@ -105,7 +104,7 @@ func (h *ProductHandler) UpdateProduct (c *gin.Context){
 		return
 	}
 
-    product.ID = id
+	product.ID = id
 
 	err = h.productService.UpdateProduct(c.Request.Context(), &product)
 	if err != nil {
@@ -118,5 +117,21 @@ func (h *ProductHandler) UpdateProduct (c *gin.Context){
 	c.JSON(http.StatusOK, gin.H{
 		"message": "Product updated successfully",
 		"data":    product,
+	})
+}
+
+func (h *ProductHandler) DeleteProduct(c *gin.Context) {
+	id := c.Param("id")
+
+	err := h.productService.DeleteProduct(c.Request.Context(), id)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error": err.Error(),
+		})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"message": "User deleted successfully",
 	})
 }

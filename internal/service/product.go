@@ -6,7 +6,7 @@ import (
 	// "fmt"
 	"koda-b6-backend/internal/models"
 	"koda-b6-backend/internal/repository"
-	// "strconv"
+	"strconv"
 )
 
 type ProductService struct {
@@ -19,7 +19,7 @@ func NewProductService(productRepo *repository.ProductRepository) *ProductServic
 	}
 }
 
-func (p *ProductService) GetAllProducts(ctx context.Context) ([]models.Product, error){
+func (p *ProductService) GetAllProducts(ctx context.Context) ([]models.Product, error) {
 	products, err := p.productRepo.GetAll(ctx)
 
 	if err != nil {
@@ -35,15 +35,15 @@ func (p *ProductService) GetAllProducts(ctx context.Context) ([]models.Product, 
 
 func (p *ProductService) GetProductByID(ctx context.Context, id int) (*models.Product, error) {
 	product, err := p.productRepo.GetByID(ctx, id)
-	
+
 	if err != nil {
 		return nil, errors.New("gagal mengambil product")
 	}
-	
+
 	return product, nil
 }
 
-func (p *ProductService) CreateProduct (ctx context.Context, product *models.Product) error{
+func (p *ProductService) CreateProduct(ctx context.Context, product *models.Product) error {
 
 	existingProduct, _ := p.productRepo.GetByID(ctx, product.ID)
 	if existingProduct != nil {
@@ -58,9 +58,9 @@ func (p *ProductService) CreateProduct (ctx context.Context, product *models.Pro
 	return nil
 }
 
-func (p *ProductService) UpdateProduct (ctx context.Context, product *models.Product) error{
-	
-	if product.ID == 0  {
+func (p *ProductService) UpdateProduct(ctx context.Context, product *models.Product) error {
+
+	if product.ID == 0 {
 		return errors.New("invalid Product Id")
 	}
 
@@ -71,6 +71,21 @@ func (p *ProductService) UpdateProduct (ctx context.Context, product *models.Pro
 	err := p.productRepo.Update(ctx, product)
 	if err != nil {
 		return errors.New("failed to update product")
+	}
+
+	return nil
+}
+
+func (p *ProductService) DeleteProduct(ctx context.Context, id string) error {
+	if id == "" {
+		return errors.New("user ID cannot be empty")
+	}
+
+	idInt, err := strconv.Atoi(id)
+
+	err = p.productRepo.Delete(ctx, idInt)
+	if err != nil {
+		return errors.New("failed to delete product")
 	}
 
 	return nil

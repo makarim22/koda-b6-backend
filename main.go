@@ -1,30 +1,28 @@
 package main
 
 import (
+	"context"
 	"fmt"
+	"koda-b6-backend/internal/di"
+	"koda-b6-backend/internal/routes"
+	"log"
 	"net/http"
 	"os"
-	"context"
-	"log"
-	"koda-b6-backend/internal/routes"
-	"koda-b6-backend/internal/di"
 
 	"github.com/gin-gonic/gin"
 
 	"github.com/jackc/pgx/v5"
-	"github.com/joho/godotenv" 
-
+	"github.com/joho/godotenv"
 )
 
-
-func corsMiddleware() gin.HandlerFunc{
-	return func(ctx *gin.Context){
+func corsMiddleware() gin.HandlerFunc {
+	return func(ctx *gin.Context) {
 		ctx.Header("Access-Control-Allow-Origin", "http://localhost:5173")
 		ctx.Header("Access-Control-Allow-Headers", "content-type")
 		ctx.GetHeader("Content-Type")
 		if ctx.Request.Method == http.MethodOptions {
 			ctx.Data(http.StatusOK, "", []byte(""))
-		} else{
+		} else {
 			ctx.Next()
 		}
 	}
@@ -40,8 +38,6 @@ func main() {
 
 	databaseURL := os.Getenv("DATABASE_URL")
 
-	//  hardcoded
-	// databaseURL := "postgresql://postgres:password@172.18.49.7:5432/coffeeshop?sslmode=disable"
 	fmt.Println("📌 Database URL:", databaseURL)
 
 	if databaseURL == "" {
