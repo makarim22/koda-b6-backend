@@ -1,10 +1,10 @@
 package di
 
 import (
+	"fmt"
 	"koda-b6-backend/internal/handlers"
 	"koda-b6-backend/internal/repository"
 	"koda-b6-backend/internal/service"
-	"fmt"
 
 	"github.com/jackc/pgx/v5"
 )
@@ -13,14 +13,19 @@ type Container struct {
 	db *pgx.Conn
 
 	// user
-	userRepo *repository.UserRepository
+	userRepo    *repository.UserRepository
 	userService *service.UserService
 	userHandler *handlers.UserHandler
 
 	// product
-	productRepo *repository.ProductRepository
+	productRepo    *repository.ProductRepository
 	productService *service.ProductService
-	productHandler *handlers.ProductHandler 
+	productHandler *handlers.ProductHandler
+
+	//forgotPassword
+	forgotPasswordRepo    *repository.ForgotPasswordRepository
+	forgotPasswordService *service.ForgotPasswordService
+	forgotPasswordHandler *handlers.ForgotPasswordHandler
 }
 
 func NewContainer(db *pgx.Conn) (*Container, error) {
@@ -37,8 +42,8 @@ func NewContainer(db *pgx.Conn) (*Container, error) {
 	return container, nil
 }
 
-func  (c *Container) initDependencies(){
-    //Users
+func (c *Container) initDependencies() {
+	//Users
 	c.userRepo = repository.NewUserRepository(c.db)
 	c.userService = service.NewUserService(c.userRepo)
 	c.userHandler = handlers.NewUserHandler(c.userService)
@@ -47,12 +52,21 @@ func  (c *Container) initDependencies(){
 	c.productService = service.NewProductService(c.productRepo)
 	c.productHandler = handlers.NewProductHandler(c.productService)
 
+	//forgotPassword
+	c.forgotPasswordRepo = repository.NewForgotPasswordRepository(c.db)
+	c.forgotPasswordService = service.NewForgotPasswordService(c.userRepo, c.forgotPasswordRepo)
+	c.forgotPasswordHandler = handlers.NewForgotPasswordHandler(c.forgotPasswordService)
+
 }
 
 func (c *Container) UserHandler() *handlers.UserHandler {
 	return c.userHandler
 }
 
-func (c *Container) ProductHandler() *handlers.ProductHandler{
+func (c *Container) ProductHandler() *handlers.ProductHandler {
 	return c.productHandler
+}
+
+func (c *Container) ForgotPasswordHandler() *handlers.ForgotPasswordHandler {
+	return c.forgotPasswordHandler
 }
