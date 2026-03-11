@@ -1,4 +1,3 @@
-
 package repository
 
 import (
@@ -7,6 +6,7 @@ import (
 	"fmt"
 
 	"koda-b6-backend/internal/models"
+
 	"github.com/jackc/pgx/v5"
 )
 
@@ -41,7 +41,7 @@ func (p *ProductRepository) GetByID(ctx context.Context, id int) (*models.Produc
 
 	err := p.db.QueryRow(ctx,
 		`SELECT id, product_name, description, stock, base_price FROM products WHERE id = $1`,
-		id).Scan(&product.ID, &product.ProductName, &product.Description, &product.Stock,)
+		id).Scan(&product.ID, &product.ProductName, &product.Description, &product.Stock)
 
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
@@ -73,7 +73,7 @@ func (p *ProductRepository) Update(ctx context.Context, product *models.Product)
 		`UPDATE products 
 		 SET product_name = $1, description = $2, stock = $3, base_price = $4
 		 WHERE id = $5
-		 RETURNING id, name, description, stock, base_price`,
+		 RETURNING id, product_name, description, stock, base_price`,
 		product.ProductName, product.Description, product.Stock, product.BasePrice, product.ID).
 		Scan(&product.ID, &product.ProductName, &product.Description, &product.Stock, &product.BasePrice)
 
@@ -101,4 +101,44 @@ func (p *ProductRepository) Delete(ctx context.Context, id int) error {
 	}
 
 	return nil
+}
+
+func (p *ProductRepository) MostReview(ctx context.Context) (*[]models.Product, error) {
+	var products []models.Product
+
+	query :=
+		`SELECT p.product_name, p.description, p.base_price, count(ur.product_id) 
+         FROM products p 
+         join user_review ur 
+         on p.id = ur.product_id
+         group by p.product_name, p.description, p.base_price
+         order by count(ur.product_id) desc`
+
+	rows, err := p.db.Query(ctx, query)
+	if err != nil {
+		return nil, fmt.Errorf("error querying most reviewed products: %w", err)
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		var product models.Product
+		var reviewCount int
+		err := rows.Scan(
+			&product.ID,
+			&product.ProductName,
+			&product.Description,
+			&product.BasePrice,
+			&reviewCount,
+		)
+		if err != nil {
+			return nil, fmt.Errorf("error scanning product row: %w", err)
+		}
+		products = append(products, product)
+	}
+
+	if err = rows.Err(); err != nil {
+		return nil, fmt.Errorf("error iterating through product rows: %w", err)
+	}
+
+	return &products, nil
 }

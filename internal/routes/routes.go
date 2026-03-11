@@ -29,14 +29,16 @@ func SetupRoutes(router *gin.Engine, container *di.Container) {
 		{
 			products.GET("", productHandler.GetAllProducts)
 			products.GET("/:id", productHandler.GetById)
+			products.GET("/recommended-products", productHandler.MostReviewedProduct)
 			products.POST("", productHandler.CreateProduct)
 			products.PUT("/:id", productHandler.UpdateProduct)
 		}
 	}
 	{
-		forgotPasswords := api.Group("/auth/forgot-password")
+		forgotPasswords := api.Group("/auth")
 		{
-			forgotPasswords.POST("", forgotPasswordHandler.ResetPassword)
+			forgotPasswords.POST("/forgot-password", forgotPasswordHandler.ResetPassword)
+
 		}
 	}
 }

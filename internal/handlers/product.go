@@ -135,3 +135,18 @@ func (h *ProductHandler) DeleteProduct(c *gin.Context) {
 		"message": "User deleted successfully",
 	})
 }
+
+func (h *ProductHandler) MostReviewedProduct(c *gin.Context) {
+	products, err := h.productService.MostReviewedProduct(c.Request.Context())
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error": err.Error(),
+		})
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"message": "Berhasil mengambil products",
+		"data":    products,
+	})
+
+}
