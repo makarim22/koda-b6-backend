@@ -62,10 +62,11 @@ func (u *UserRepository) GetByEmail(ctx context.Context, email string) (*models.
 }
 
 func (u *UserRepository) Create(ctx context.Context, user *models.User) error {
-	_, err := u.db.Exec(ctx,
-		`INSERT INTO users (id, full_name, email, password, phone) 
-		 VALUES ($1, $2, $3, $4, $5)`,
-		user.ID, user.Name, user.Email, user.Password, user.Phone)
+	err := u.db.QueryRow(ctx,
+		`INSERT INTO users (full_name, email, password, phone) 
+		 VALUES ($1, $2, $3, $4)
+		 RETURNING id`,
+		user.Name, user.Email, user.Password, user.Phone).Scan(&user.ID)
 
 	return err
 }

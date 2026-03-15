@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"koda-b6-backend/internal/di"
+	"koda-b6-backend/internal/lib"
 	"koda-b6-backend/internal/routes"
 	"log"
 	"net/http"
@@ -31,6 +32,10 @@ func corsMiddleware() gin.HandlerFunc {
 var db *pgx.Conn
 
 func main() {
+
+	if err := lib.InitConfig(); err != nil {
+		log.Fatalf("Failed to initialize config: %v", err)
+	}
 
 	if err := godotenv.Load(); err != nil {
 		log.Println("⚠️  No .env file found, using system environment variables")

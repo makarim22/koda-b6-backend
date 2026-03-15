@@ -2,6 +2,8 @@ package service
 
 import (
 	"context"
+	"database/sql"
+	"errors"
 	"fmt"
 	"koda-b6-backend/internal/lib"
 	"koda-b6-backend/internal/models"
@@ -47,4 +49,41 @@ func (s *AuthService) Register(ctx context.Context, email, password string) (*mo
 		ID:    user.ID,
 		Email: user.Email,
 	}, nil
+}
+
+func (s *AuthService) Login(ctx context.Context, email, password string) (*models.User, string, error) {
+	// Get user by email
+	user, err := s.userRepo.GetByEmail(ctx, email)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, "", fmt.Errorf("invalid email or password")
+		}
+		return nil, "", fmt.Errorf("failed to retrieve user: %w", err)
+	}
+
+	if user == nil {
+		return nil, "", fmt.Errorf("invalid email or password")
+	}
+
+	// Verify password using Argon2
+	valid, err := lib.VerifyPassword(password, user.Password)
+	if err != nil {
+		return nil, "", fmt.Errorf("failed to verify password: %w", err)
+	}
+
+	if !valid {
+		return nil, "", fmt.Errorf("invalid email or password")
+	}
+
+	// Generate JWT token
+	token, err := lib.GenerateJWT(user.ID, user.Email)
+	if err != nil {
+		return nil, "", fmt.Errorf("failed to generate token: %w", err)
+	}
+
+	// Return user without password
+	return &models.User{
+		ID:    user.ID,
+		Email: user.Email,
+	}, token, nil
 }

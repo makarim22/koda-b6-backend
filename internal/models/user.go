@@ -35,6 +35,12 @@ type LoginRequest struct {
 	Password string `json:"password" binding:"required"`
 }
 
+type LoginResponse struct {
+	ID    int    `json:"id"`
+	Email string `json:"email"`
+	Token string `json:"token"`
+}
+
 type AuthResponse struct {
 	Success bool   `json:"success"`
 	Message string `json:"message"`

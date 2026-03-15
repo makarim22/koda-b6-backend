@@ -52,3 +52,37 @@ func (h *AuthHandler) Register(c *gin.Context) {
 		},
 	})
 }
+
+func (h *AuthHandler) Login(c *gin.Context) {
+	var req models.LoginRequest
+
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, models.ApiResponse{
+			Success: false,
+			Message: "Invalid request: " + err.Error(),
+		})
+		return
+	}
+
+	ctx := c.Request.Context()
+
+	// Call service to login user
+	user, token, err := h.authService.Login(ctx, req.Email, req.Password)
+	if err != nil {
+		c.JSON(http.StatusUnauthorized, models.ApiResponse{
+			Success: false,
+			Message: err.Error(),
+		})
+		return
+	}
+
+	c.JSON(http.StatusOK, models.ApiResponse{
+		Success: true,
+		Message: "Login successful",
+		Data: models.LoginResponse{
+			ID:    user.ID,
+			Email: user.Email,
+			Token: token,
+		},
+	})
+}

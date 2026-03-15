@@ -49,7 +49,9 @@ func (c *Container) initDependencies() {
 	c.userRepo = repository.NewUserRepository(c.db)
 	c.userService = service.NewUserService(c.userRepo)
 	c.userHandler = handlers.NewUserHandler(c.userService)
+	c.authService = service.NewAuthService(c.userRepo)
 	c.authHandler = handlers.NewAuthHandler(c.userService, c.authService)
+
 	//Products
 	c.productRepo = repository.NewProductRepository(c.db)
 	c.productService = service.NewProductService(c.productRepo)

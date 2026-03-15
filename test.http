@@ -20,14 +20,12 @@ content-type: application/application/json
 
 ###
 
-PUT http://localhost:8888/api/v1/users/2 HTTP/1.1
+POST http://localhost:8888/admin/auth/login HTTP/1.1
 content-type: application/application/json
 
 {
-    "name": "jakamakarim",
-    "email": "jakamakarim@gmail.com",
-    "password": "secret",
-    "phone": "081529939012" 
+    "email": "jakamakarim222@gmail.com",
+    "password": "secret"
 }
 
 ###
