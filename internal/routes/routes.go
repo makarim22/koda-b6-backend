@@ -14,6 +14,7 @@ func SetupRoutes(router *gin.Engine, container *di.Container) {
 	forgotPasswordHandler := container.ForgotPasswordHandler()
 	authHandler := container.AuthHandler()
 	orderHandler := container.OrderHandler()
+	cartHandler := container.CartHandler()
 
 	api := router.Group("/admin")
 	{
@@ -54,6 +55,15 @@ func SetupRoutes(router *gin.Engine, container *di.Container) {
 			orders.PUT("/:id", orderHandler.UpdateOrderStatus)
 			orders.DELETE("/:id", orderHandler.DeleteOrder)
 		}
+	}
+	cartGroup := router.Group("/api/cart")
+	{
+		cartGroup.GET("", cartHandler.GetCart)
+		//cartGroup.GET("/summary", cartHandler.GetCartSummary)
+		cartGroup.POST("", cartHandler.AddToCart)
+		cartGroup.PUT("/:cart_id", cartHandler.UpdateCartItem)
+		cartGroup.DELETE("/:cart_id", cartHandler.RemoveFromCart)
+		cartGroup.DELETE("", cartHandler.ClearCart)
 	}
 
 }
