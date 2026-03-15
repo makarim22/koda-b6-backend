@@ -13,6 +13,7 @@ func SetupRoutes(router *gin.Engine, container *di.Container) {
 	productHandler := container.ProductHandler()
 	forgotPasswordHandler := container.ForgotPasswordHandler()
 	authHandler := container.AuthHandler()
+	orderHandler := container.OrderHandler()
 
 	api := router.Group("/admin")
 	{
@@ -42,6 +43,16 @@ func SetupRoutes(router *gin.Engine, container *di.Container) {
 			auth.POST("/register", authHandler.Register)
 			auth.POST("/login", authHandler.Login)
 
+		}
+	}
+	{
+		orders := api.Group("/orders") // Add orders routes
+		{
+			orders.GET("", orderHandler.GetUserOrders)
+			orders.GET("/:id", orderHandler.GetOrder)
+			orders.POST("", orderHandler.CreateOrder)
+			orders.PUT("/:id", orderHandler.UpdateOrderStatus)
+			orders.DELETE("/:id", orderHandler.DeleteOrder)
 		}
 	}
 
