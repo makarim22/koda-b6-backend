@@ -16,6 +16,8 @@ type Container struct {
 	userRepo    *repository.UserRepository
 	userService *service.UserService
 	userHandler *handlers.UserHandler
+	authHandler *handlers.AuthHandler
+	authService *service.AuthService
 
 	// product
 	productRepo    *repository.ProductRepository
@@ -47,6 +49,7 @@ func (c *Container) initDependencies() {
 	c.userRepo = repository.NewUserRepository(c.db)
 	c.userService = service.NewUserService(c.userRepo)
 	c.userHandler = handlers.NewUserHandler(c.userService)
+	c.authHandler = handlers.NewAuthHandler(c.userService, c.authService)
 	//Products
 	c.productRepo = repository.NewProductRepository(c.db)
 	c.productService = service.NewProductService(c.productRepo)
@@ -69,4 +72,8 @@ func (c *Container) ProductHandler() *handlers.ProductHandler {
 
 func (c *Container) ForgotPasswordHandler() *handlers.ForgotPasswordHandler {
 	return c.forgotPasswordHandler
+}
+
+func (c *Container) AuthHandler() *handlers.AuthHandler {
+	return c.authHandler
 }

@@ -1,5 +1,5 @@
 
-GET http://localhost:8888/api/v1/users HTTP/1.1
+GET http://localhost:8888/admin/users HTTP/1.1
 content-type: application/application/json
 
 ###
