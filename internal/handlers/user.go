@@ -6,7 +6,6 @@ import (
 	"net/http"
 	"strconv"
 
-
 	"github.com/gin-gonic/gin"
 )
 
@@ -30,11 +29,10 @@ func (h *UserHandler) GetAllUsers(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, gin.H{
-		"message": "Users retrieved successfully",
+		"message": "berhasil mengambil data user",
 		"data":    users,
 	})
 }
-
 
 func (h *UserHandler) GetUserByID(c *gin.Context) {
 	id := c.Param("id")
@@ -119,7 +117,6 @@ func (h *UserHandler) UpdateUser(c *gin.Context) {
 		"data":    user,
 	})
 }
-
 
 func (h *UserHandler) DeleteUser(c *gin.Context) {
 	id := c.Param("id")

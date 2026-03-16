@@ -77,14 +77,6 @@ func main() {
 
 	router.Use(corsMiddleware())
 
-	// ✅ Health Check Endpoint
-	router.GET("/", func(c *gin.Context) {
-		c.JSON(http.StatusOK, gin.H{
-			"status":  "ok",
-			"message": "Server is running",
-		})
-	})
-
 	routes.SetupRoutes(router, container)
 
 	log.Printf("🚀 Server started on http://localhost%s\n", serverPort)
