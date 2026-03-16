@@ -35,3 +35,16 @@ jobs:
           push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
+
+      - name: "[SERVER] Deploy latest image"
+        uses: appleboy/ssh-action@v1
+        with:
+          host: ${{ secrets.HOST }}
+          username: ${{ secrets.USERNAME }}
+          key: ${{ secrets.KEY }}
+          port: ${{ secrets.PORT }}
+          script: |
+            cd server-jaka && \
+            docker compose pull && \
+            docker run --rm --network=server-jaka_default migrate/migrate:latest -source github://makarim22:${{ secrets.GITHUB_TOKEN }}@makarim22/koda-b6-backend/db/migrations -database postgresql://postgres:1@pg:5432/postgres?sslmode=disable version \
+            docker compose backend up -d
