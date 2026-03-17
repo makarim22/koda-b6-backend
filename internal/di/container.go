@@ -38,6 +38,11 @@ type Container struct {
 	cartRepo    *repository.CartRepository
 	cartService *service.CartService
 	cartHandler *handlers.CartHandler
+
+	//reviews
+	reviewsRepo    *repository.ReviewsRepository
+	reviewsService *service.ReviewsService
+	reviewsHandler *handlers.ReviewsHandler
 }
 
 func NewContainer(db *pgx.Conn) (*Container, error) {
@@ -82,6 +87,11 @@ func (c *Container) initDependencies() {
 	c.cartService = service.NewCartService(c.cartRepo, c.productRepo)
 	c.cartHandler = handlers.NewCartHandler(c.cartService)
 
+	//reviews
+	c.reviewsRepo = repository.NewReviewsRepository(c.db)
+	c.reviewsService = service.NewReviewsService(c.reviewsRepo)
+	c.reviewsHandler = handlers.NewReviewsHandler(c.reviewsService)
+
 }
 
 func (c *Container) UserHandler() *handlers.UserHandler {
@@ -106,4 +116,8 @@ func (c *Container) OrderHandler() *handlers.OrderHandler {
 
 func (c *Container) CartHandler() *handlers.CartHandler {
 	return c.cartHandler
+}
+
+func (c *Container) ReviewsHandler() *handlers.ReviewsHandler {
+	return c.reviewsHandler
 }

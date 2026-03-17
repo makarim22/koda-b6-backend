@@ -15,6 +15,7 @@ func SetupRoutes(router *gin.Engine, container *di.Container) {
 	authHandler := container.AuthHandler()
 	orderHandler := container.OrderHandler()
 	cartHandler := container.CartHandler()
+	reviewsHandler := container.ReviewsHandler()
 
 	api := router.Group("/admin")
 	{
@@ -65,6 +66,10 @@ func SetupRoutes(router *gin.Engine, container *di.Container) {
 		cartGroup.PUT("/:cart_id", cartHandler.UpdateCartItem)
 		cartGroup.DELETE("/:cart_id", cartHandler.RemoveFromCart)
 		cartGroup.DELETE("", cartHandler.ClearCart)
+	}
+	reviewsGroup := api.Group("/reviews")
+	{
+		reviewsGroup.GET("", reviewsHandler.GetAllReviews)
 	}
 
 }
