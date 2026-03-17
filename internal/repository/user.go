@@ -51,8 +51,8 @@ func (u *UserRepository) GetByEmail(ctx context.Context, email string) (*models.
 	var user models.User
 
 	err := u.db.QueryRow(ctx,
-		`SELECT id, full_name, email, password, phone FROM users WHERE email = $1`,
-		email).Scan(&user.ID, &user.Name, &user.Email, &user.Password, &user.Phone)
+		`SELECT id, full_name, email, password FROM users WHERE email = $1`,
+		email).Scan(&user.ID, &user.Name, &user.Email, &user.Password)
 
 	if err != nil {
 		return nil, err
@@ -63,10 +63,10 @@ func (u *UserRepository) GetByEmail(ctx context.Context, email string) (*models.
 
 func (u *UserRepository) Create(ctx context.Context, user *models.User) error {
 	err := u.db.QueryRow(ctx,
-		`INSERT INTO users (full_name, email, password, phone) 
-		 VALUES ($1, $2, $3, $4)
+		`INSERT INTO users (full_name, email, password) 
+		 VALUES ($1, $2, $3)
 		 RETURNING id`,
-		user.Name, user.Email, user.Password, user.Phone).Scan(&user.ID)
+		user.Name, user.Email, user.Password).Scan(&user.ID)
 
 	return err
 }

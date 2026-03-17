@@ -22,7 +22,7 @@ func NewForgotPasswordRepository(db *pgx.Conn) *ForgotPasswordRepository {
 
 func (r *ForgotPasswordRepository) CreateForgotPassword(ctx context.Context, email string) (models.ForgotPassword, error) {
 
-	codeOTP := rand.Int()
+	codeOTP := rand.Intn(900000) + 100000
 
 	now := time.Now()
 	expiredAt := now.Add(15 * time.Minute)

@@ -17,3 +17,7 @@ type ResetPasswordRequest struct {
 	NewPassword     string `json:"new_password" validate:"required,min=8,max=128"`
 	ConfirmPassword string `json:"confirm_password" validate:"required,min=8,max=128"`
 }
+
+type ForgotPasswordRequest struct {
+	Email string `db:"email" json:"email"`
+}

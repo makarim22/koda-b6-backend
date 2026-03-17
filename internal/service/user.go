@@ -91,6 +91,10 @@ func (s *UserService) CreateUserNew(ctx context.Context, req *models.RegisterReq
 		return nil, errors.New("password must be at least 6 characters")
 	}
 
+	if req.Password != req.ConfirmPassword {
+		return nil, errors.New("make sure the confirm password is correct")
+	}
+
 	// Check if user already exists
 	existingUser, _ := s.userRepo.GetByEmail(ctx, req.Email)
 	if existingUser != nil {

@@ -40,7 +40,8 @@ func SetupRoutes(router *gin.Engine, container *di.Container) {
 	{
 		auth := api.Group("/auth")
 		{
-			auth.POST("/forgot-password", forgotPasswordHandler.ResetPassword)
+			auth.POST("/forgot-password", forgotPasswordHandler.ForgotPassword)
+			auth.POST("/reset-password", forgotPasswordHandler.ResetPassword)
 			auth.POST("/register", authHandler.Register)
 			auth.POST("/login", authHandler.Login)
 
