@@ -107,11 +107,11 @@ func (p *ProductRepository) MostReview(ctx context.Context) (*[]models.Product, 
 	var products []models.Product
 
 	query :=
-		`SELECT p.product_name, p.description, p.base_price, count(ur.product_id) 
+		`SELECT p.id, p.product_name, p.description, p.base_price, count(ur.product_id) 
          FROM products p 
          join user_review ur 
          on p.id = ur.product_id
-         group by p.product_name, p.description, p.base_price
+         group by p.id, p.product_name, p.description, p.base_price
          order by count(ur.product_id) desc`
 
 	rows, err := p.db.Query(ctx, query)
