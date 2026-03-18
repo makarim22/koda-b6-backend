@@ -19,7 +19,7 @@ func NewReviewsRepository(db *pgx.Conn) *ReviewsRepository {
 
 func (r *ReviewsRepository) GetAll(ctx context.Context) ([]models.Reviews, error) {
 	rows, err := r.db.Query(ctx,
-		`SELECT id, user_id, product_id, order_id, message, rating FROM user_review`)
+		`SELECT ur.id, ur.user_id, u.full_name, u.email, ur.product_id, p.product_name, ur.order_id, ur.message, ur.rating FROM user_review ur join products p on p.id = ur.product_id join users u on u.id = ur.user_id`)
 	if err != nil {
 		return nil, err
 	}
