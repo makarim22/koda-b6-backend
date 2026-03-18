@@ -70,6 +70,7 @@ func SetupRoutes(router *gin.Engine, container *di.Container) {
 	reviewsGroup := api.Group("/reviews")
 	{
 		reviewsGroup.GET("", reviewsHandler.GetAllReviews)
+		reviewsGroup.GET("/:id", reviewsHandler.GetReview)
 	}
 
 }

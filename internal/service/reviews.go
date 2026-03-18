@@ -29,3 +29,11 @@ func (s *ReviewsService) GetAllReviews(ctx context.Context) ([]models.ReviewsRes
 
 	return reviews, nil
 }
+
+func (s *ReviewsService) GetById(ctx context.Context, id int) (models.ReviewsResponse, error) {
+	review, err := s.reviewsRepo.GetById(ctx, id)
+	if err != nil {
+		return models.ReviewsResponse{}, err
+	}
+	return *review, nil
+}
