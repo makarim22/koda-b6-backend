@@ -41,7 +41,7 @@ func (p *ProductRepository) GetByID(ctx context.Context, id int) (*models.Produc
 
 	err := p.db.QueryRow(ctx,
 		`SELECT id, product_name, description, stock, base_price FROM products WHERE id = $1`,
-		id).Scan(&product.ID, &product.ProductName, &product.Description, &product.Stock)
+		id).Scan(&product.ID, &product.ProductName, &product.Description, &product.Stock, &product.BasePrice)
 
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {

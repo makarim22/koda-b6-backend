@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"koda-b6-backend/internal/models"
 	"koda-b6-backend/internal/service"
 	"net/http"
 	"strconv"
@@ -50,6 +51,28 @@ func (h *ReviewsHandler) GetReview(c *gin.Context) {
 	}
 	c.JSON(http.StatusOK, gin.H{
 		"message": "berhasil mengambil data review",
+		"data":    review,
+	})
+}
+
+func (h *ReviewsHandler) CreateReview(c *gin.Context) {
+	var review models.ReviewsRequest
+	if err := c.BindJSON(&review); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": "invalid request body",
+		})
+		return
+	}
+
+	err := h.reviewsService.CreateReview(c.Request.Context(), &review)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error": err.Error(),
+		})
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{
+		"message": "berhasil membuat data review",
 		"data":    review,
 	})
 }

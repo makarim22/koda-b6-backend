@@ -89,7 +89,7 @@ func (c *Container) initDependencies() {
 
 	//reviews
 	c.reviewsRepo = repository.NewReviewsRepository(c.db)
-	c.reviewsService = service.NewReviewsService(c.reviewsRepo)
+	c.reviewsService = service.NewReviewsService(c.reviewsRepo, c.orderRepo, c.productRepo)
 	c.reviewsHandler = handlers.NewReviewsHandler(c.reviewsService)
 
 }
