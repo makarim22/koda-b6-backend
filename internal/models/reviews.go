@@ -1,6 +1,14 @@
 package models
 
 type Reviews struct {
+	Id        int    `json:"id" db:"id"`
+	UserId    int    `json:"user_id" db:"user_id"`
+	ProductId int    `json:"product_id" db:"product_id"`
+	OrderId   int    `json:"order_id" db:"order_id"`
+	Message   string `json:"message" db:"message"`
+	Rating    int    `json:"rating" db:"rating"`
+}
+type ReviewsResponse struct {
 	Id          int    `json:"id" db:"id"`
 	UserId      int    `json:"user_id" db:"user_id"`
 	UserName    string `json:"user_name" db:"full_name"`
@@ -10,4 +18,13 @@ type Reviews struct {
 	OrderId     int    `json:"order_id" db:"order_id"`
 	Message     string `json:"message" db:"message"`
 	Rating      int    `json:"rating" db:"rating"`
+}
+
+type ReviewsRequest struct {
+	Id        int    `json:"id" db:"id"`
+	UserId    int    `json:"user_id" db:"user_id"`
+	ProductId int    `json:"product_id" db:"product_id"`
+	OrderId   int    `json:"order_id" db:"order_id"`
+	Message   string `json:"message" db:"message"`
+	Rating    int    `json:"rating" db:"rating"`
 }

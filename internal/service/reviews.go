@@ -17,14 +17,14 @@ func NewReviewsService(reviewsRepo *repository.ReviewsRepository) *ReviewsServic
 	}
 }
 
-func (s *ReviewsService) GetAllReviews(ctx context.Context) ([]models.Reviews, error) {
+func (s *ReviewsService) GetAllReviews(ctx context.Context) ([]models.ReviewsResponse, error) {
 	reviews, err := s.reviewsRepo.GetAll(ctx)
 	if err != nil {
 		return nil, errors.New("failed to retrieve reviews")
 	}
 
 	if len(reviews) == 0 {
-		return []models.Reviews{}, nil
+		return []models.ReviewsResponse{}, nil
 	}
 
 	return reviews, nil
