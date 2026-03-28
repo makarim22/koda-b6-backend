@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	// "fmt"
+	customerrors "koda-b6-backend/internal/errors"
 	"koda-b6-backend/internal/models"
 	"koda-b6-backend/internal/repository"
 	"strconv"
@@ -98,4 +99,22 @@ func (p *ProductService) MostReviewedProduct(ctx context.Context) (*[]models.Pro
 	}
 
 	return products, nil
+}
+
+func (p *ProductService) UpdateStock(ctx context.Context, id, quantity int) error {
+	if id <= 0 {
+		return customerrors.NewValidationError("product_id", "must be positive")
+	}
+	if quantity <= 0 {
+		return customerrors.NewValidationError("quantity", "must be positive")
+	}
+
+	err := p.productRepo.UpdateStock(ctx, id, quantity)
+	if err != nil {
+		if customerrors.IsNotFoundError(err) {
+			return err
+		}
+		return customerrors.NewDatabaseError("update stock", err)
+	}
+	return nil
 }
