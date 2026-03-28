@@ -2,6 +2,7 @@ package repository
 
 import (
 	"context"
+	"database/sql"
 	"errors"
 	"fmt"
 	"koda-b6-backend/internal/models"
@@ -85,4 +86,17 @@ func (r *ReviewsRepository) UpdateReview(ctx context.Context, review *models.Rev
 		`UPDATE user_review SET message=$1, rating=$2 where id=$3`,
 		review.Message, review.Rating, review.Id)
 	return err
+}
+
+func (r *ReviewsRepository) GetAverageRating(ctx context.Context, productID int) (float64, error) {
+	query := `SELECT AVG(rating) FROM user_review WHERE product_id = $1`
+	var rating sql.NullFloat64
+	err := r.db.QueryRow(ctx, query, productID).Scan(&rating)
+	if err != nil {
+		return 0, fmt.Errorf("failed to get average rating: %w", err)
+	}
+	if !rating.Valid {
+		return 0, nil
+	}
+	return rating.Float64, nil
 }
