@@ -79,3 +79,10 @@ func (r *ReviewsRepository) GetByUserProductOrder(ctx context.Context, userID, p
 
 	return &review, nil
 }
+
+func (r *ReviewsRepository) UpdateReview(ctx context.Context, review *models.ReviewsRequest) error {
+	_, err := r.db.Exec(ctx,
+		`UPDATE user_review SET message=$1, rating=$2 where id=$3`,
+		review.Message, review.Rating, review.Id)
+	return err
+}

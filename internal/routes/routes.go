@@ -72,6 +72,7 @@ func SetupRoutes(router *gin.Engine, container *di.Container) {
 		reviewsGroup.GET("", reviewsHandler.GetAllReviews)
 		reviewsGroup.GET("/:id", reviewsHandler.GetReview)
 		reviewsGroup.POST("", reviewsHandler.CreateReview)
+		reviewsGroup.PUT("/:id", reviewsHandler.UpdateReview)
 	}
 
 }

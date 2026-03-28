@@ -76,3 +76,30 @@ func (h *ReviewsHandler) CreateReview(c *gin.Context) {
 		"data":    review,
 	})
 }
+
+func (h *ReviewsHandler) UpdateReview(c *gin.Context) {
+	reviewID := c.Param("id")
+	id, err := strconv.Atoi(reviewID)
+	if err != nil {
+		return
+	}
+	var review models.ReviewsRequest
+	if err := c.BindJSON(&review); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": "invalid request body",
+		})
+	}
+
+	review.Id = id
+
+	err = h.reviewsService.UpdateReview(c.Request.Context(), &review)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error": err.Error(),
+		})
+	}
+	c.JSON(http.StatusOK, gin.H{
+		"message": "berhasil mengubah data review",
+		"data":    review,
+	})
+}

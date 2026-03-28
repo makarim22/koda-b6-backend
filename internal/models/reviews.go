@@ -1,12 +1,15 @@
 package models
 
+import "time"
+
 type Reviews struct {
-	Id        int    `json:"id" db:"id"`
-	UserId    int    `json:"user_id" db:"user_id"`
-	ProductId int    `json:"product_id" db:"product_id"`
-	OrderId   int    `json:"order_id" db:"order_id"`
-	Message   string `json:"message" db:"message"`
-	Rating    int    `json:"rating" db:"rating"`
+	Id        int       `json:"id" db:"id"`
+	UserId    int       `json:"user_id" db:"user_id"`
+	ProductId int       `json:"product_id" db:"product_id"`
+	OrderId   int       `json:"order_id" db:"order_id"`
+	Message   string    `json:"message" db:"message"`
+	Rating    int       `json:"rating" db:"rating"`
+	CreatedAt time.Time `json:"created_at" db:"created_at"`
 }
 type ReviewsResponse struct {
 	Id          int    `json:"id" db:"id"`
@@ -27,4 +30,9 @@ type ReviewsRequest struct {
 	OrderId   int    `json:"order_id" db:"order_id"`
 	Message   string `json:"message" db:"message"`
 	Rating    int    `json:"rating" db:"rating"`
+}
+
+type UpdateReviewsRequest struct {
+	Message string `json:"message" db:"message"`
+	Rating  int    `json:"rating" db:"rating"`
 }
