@@ -182,3 +182,31 @@ func IsDatabaseError(err error) bool {
 	_, ok := err.(*DatabaseError)
 	return ok
 }
+
+/// service level failure
+
+// ServiceError represents a service-level operation failure
+type ServiceError struct {
+	Operation string
+	Err       error
+}
+
+func (e *ServiceError) Error() string {
+	if e.Err != nil {
+		return fmt.Sprintf("service error during %s: %v", e.Operation, e.Err)
+	}
+	return fmt.Sprintf("service error during %s", e.Operation)
+}
+
+// Unwrap allows error wrapping/chaining
+func (e *ServiceError) Unwrap() error {
+	return e.Err
+}
+
+// NewServiceError creates a new ServiceError
+func NewServiceError(operation string, err error) *ServiceError {
+	return &ServiceError{
+		Operation: operation,
+		Err:       err,
+	}
+}
