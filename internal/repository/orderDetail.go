@@ -51,3 +51,27 @@ func (r *OrderDetailRepository) GetByOrderID(ctx context.Context, orderID int) (
 	}
 	return details, nil
 }
+
+func (r *OrderDetailRepository) Update(ctx context.Context, detail *models.OrderDetail) error {
+	query := `UPDATE order_detail SET quantity = $1, unit_price = $2 WHERE id = $3`
+	result, err := r.db.Exec(ctx, query, detail.Quantity, detail.Price, detail.ID)
+	if err != nil {
+		return fmt.Errorf("failed to update order detail: %w", err)
+	}
+	if result.RowsAffected() == 0 {
+		return fmt.Errorf("order detail not found")
+	}
+	return nil
+}
+
+func (r *OrderDetailRepository) Delete(ctx context.Context, id int) error {
+	query := `DELETE FROM order_detail WHERE id = $1`
+	result, err := r.db.Exec(ctx, query, id)
+	if err != nil {
+		return fmt.Errorf("failed to delete order detail: %w", err)
+	}
+	if result.RowsAffected() == 0 {
+		return fmt.Errorf("order detail not found")
+	}
+	return nil
+}
