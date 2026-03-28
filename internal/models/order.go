@@ -59,3 +59,17 @@ type OrderDetailResponse struct {
 type UpdateOrderStatusRequest struct {
 	Status string `json:"status" binding:"required,oneof=pending processing shipped delivered cancelled"`
 }
+
+type CreateOrderDetailRequest struct {
+	OrderID       int     `json:"order_id" binding:"required"`
+	ProductID     int     `json:"product_id" binding:"required"`
+	SizeID        int     `json:"size_id" binding:"required"`
+	TemperatureID int     `json:"temperature_id" binding:"required"`
+	Quantity      int     `json:"quantity" binding:"required,min=1"`
+	UnitPrice     float64 `json:"unit_price" binding:"required,min=0"`
+}
+
+type UpdateOrderDetailRequest struct {
+	Quantity  int     `json:"quantity" binding:"required,min=1"`
+	UnitPrice float64 `json:"unit_price" binding:"required,min=0"`
+}
