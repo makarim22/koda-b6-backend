@@ -142,3 +142,9 @@ func (p *ProductRepository) MostReview(ctx context.Context) (*[]models.Product, 
 
 	return &products, nil
 }
+
+func (p *ProductRepository) UpdateStock(ctx context.Context, id, quantity int) error {
+	query := `UPDATE products SET stock = stock - $1 WHERE id = $2`
+	_, err := p.db.Exec(ctx, query, quantity, id)
+	return err
+}
