@@ -26,3 +26,13 @@ type PaymentResponse struct {
 	TransactionID *string    `json:"transaction_id,omitempty"`
 	PaymentDate   *time.Time `json:"payment_date,omitempty"`
 }
+
+type CreatePaymentRequest struct {
+	OrderID int     `json:"order_id" binding:"required"`
+	Amount  float64 `json:"amount" binding:"required,min=0"`
+	Method  string  `json:"method" binding:"required"`
+}
+
+type UpdatePaymentStatusRequest struct {
+	Status string `json:"status" binding:"required"`
+}

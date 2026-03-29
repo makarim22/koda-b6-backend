@@ -18,6 +18,7 @@ func SetupRoutes(router *gin.Engine, container *di.Container) {
 	reviewsHandler := container.ReviewsHandler()
 	productCategoryHandler := container.ProductCategoryHandler()
 	orderDetailHandler := container.OrderDetailHandler()
+	paymentHandler := container.PaymentHandler()
 
 	api := router.Group("/admin")
 	{
@@ -51,20 +52,20 @@ func SetupRoutes(router *gin.Engine, container *di.Container) {
 		}
 	}
 	{
-		orders := api.Group("/orders") // Add orders routes
+		orders := api.Group("/orders")
 		{
+			orders.POST("", orderHandler.CreateOrder)
 			orders.GET("", orderHandler.GetUserOrders)
 			orders.GET("/:id", orderHandler.GetOrder)
-			orders.POST("", orderHandler.CreateOrder)
 			orders.PUT("/:id", orderHandler.UpdateOrderStatus)
 			orders.DELETE("/:id", orderHandler.DeleteOrder)
-			orderDetails := orders.Group("/:order_id/details")
+
+			orderDetails := orders.Group("/:id/details")
 			{
 				orderDetails.GET("", orderDetailHandler.GetByOrderID)
-				//orderDetails.GET("/:id", orderDetailHandler.GetByID)
 				orderDetails.POST("", orderDetailHandler.Create)
-				orderDetails.PUT("/:id", orderDetailHandler.Update)
-				orderDetails.DELETE("/:id", orderDetailHandler.Delete)
+				orderDetails.PUT("/:detail_id", orderDetailHandler.Update)
+				orderDetails.DELETE("/:detail_id", orderDetailHandler.Delete)
 			}
 		}
 	}
@@ -92,5 +93,13 @@ func SetupRoutes(router *gin.Engine, container *di.Container) {
 		productCategories.PUT("/:id", productCategoryHandler.UpdateCategory)
 		productCategories.DELETE("/:id", productCategoryHandler.DeleteCategory)
 	}
-
+	{
+		payments := api.Group("/payments")
+		{
+			payments.POST("", paymentHandler.Create)
+			payments.GET("/:id", paymentHandler.GetByID)
+			payments.PUT("/:id", paymentHandler.UpdateStatus)
+			payments.DELETE("/:id", paymentHandler.Delete)
+		}
+	}
 }

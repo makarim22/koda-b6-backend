@@ -14,8 +14,8 @@ type PaymentRepository struct {
 	db *pgx.Conn
 }
 
-func NewPaymentRepository(db *pgx.Conn) *OrderRepository {
-	return &OrderRepository{
+func NewPaymentRepository(db *pgx.Conn) *PaymentRepository {
+	return &PaymentRepository{
 		db: db,
 	}
 }
