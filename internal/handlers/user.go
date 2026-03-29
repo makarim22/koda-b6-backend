@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"fmt"
 	"koda-b6-backend/internal/models"
 	"koda-b6-backend/internal/service"
 	"net/http"
@@ -21,6 +22,8 @@ func NewUserHandler(userService *service.UserService) *UserHandler {
 
 func (h *UserHandler) GetAllUsers(c *gin.Context) {
 	users, err := h.userService.GetAllUsers(c.Request.Context())
+
+	fmt.Println("im here")
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"error": err.Error(),

@@ -56,7 +56,7 @@ func (h *ForgotPasswordHandler) ForgotPassword(c *gin.Context) {
 		return
 	}
 
-	err := h.forgotPasswordService.ForgotPassword(c.Request.Context(), reqEmail.Email)
+	forgotPassword, err := h.forgotPasswordService.ForgotPassword(c.Request.Context(), reqEmail.Email)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"error": err.Error(),
@@ -64,9 +64,17 @@ func (h *ForgotPasswordHandler) ForgotPassword(c *gin.Context) {
 		return
 	}
 
+	//c.JSON(http.StatusCreated, gin.H{
+	//	"message": "request berhasil dikirim",
+	//	"data":    reqEmail,
+	//})
+
 	c.JSON(http.StatusCreated, gin.H{
 		"message": "request berhasil dikirim",
-		"data":    reqEmail,
+		"data": gin.H{
+			"email":    forgotPassword.Email,
+			"code_otp": forgotPassword.CodeOTP,
+		},
 	})
 
 }

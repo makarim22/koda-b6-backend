@@ -28,6 +28,38 @@ content-type: application/application/json
     "password": "secret"
 }
 
+
+###
+POST http://localhost:8888/admin/auth/register HTTP/1.1
+content-type: application/json
+
+{
+    "name": "jaka",
+    "email": "jakamakarim222@gmail.com",
+    "password": "secret",
+    "confirm_password": "secret"
+}
+
+###
+POST http://localhost:8888/admin/auth/forgot-password HTTP/1.1
+content-type: application/json
+
+{
+  "email": "jack@gmail.com"
+}
+
+###
+POST http://localhost:8888/admin/auth/reset-password HTTP/1.1
+content-type: application/json
+
+{
+  "email": "jack@gmail.com",
+  "otp": 813916,
+  "password": 12345678
+}
+
+
+
 ###
 DELETE http://localhost:8888/api/v1/users/2 HTTP/1.1
 

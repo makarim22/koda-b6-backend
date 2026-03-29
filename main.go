@@ -19,7 +19,7 @@ import (
 func corsMiddleware() gin.HandlerFunc {
 	godotenv.Load()
 	return func(ctx *gin.Context) {
-		ctx.Header("Access-Control-Allow-Origin", os.Getenv("FRONTEND_URL"))
+		ctx.Header("Access-Control-Allow-Origin", "*")
 		ctx.Header("Access-Control-Allow-Methods", "POST,GET,OPTIONS,PUT,DELETE,PATCH")
 		ctx.Header("Access-Control-Allow-Headers", "Content-Type, Authorization")
 		ctx.GetHeader("Content-Type")

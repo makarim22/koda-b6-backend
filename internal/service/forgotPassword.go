@@ -4,6 +4,8 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"koda-b6-backend/internal/lib"
+
 	//"github.com/matthewhartstonge/argon2"
 	"koda-b6-backend/internal/models"
 	"koda-b6-backend/internal/repository"
@@ -22,31 +24,31 @@ func NewForgotPasswordService(userRepository *repository.UserRepository, passwor
 	}
 }
 
-func (s *ForgotPasswordService) ForgotPassword(ctx context.Context, email string) error {
+func (s *ForgotPasswordService) ForgotPassword(ctx context.Context, email string) (models.ForgotPassword, error) {
 
 	user, err := s.userRepo.GetByEmail(ctx, email)
 	if err != nil {
 		log.Printf("ForgotPassword: tidak ada user dengan email tersebut %s", email)
-		return errors.New("apabila email terdaftar di sistem kami, kode OTP akan dikirim via email")
+		return models.ForgotPassword{}, errors.New("apabila email terdaftar di sistem kami, kode OTP akan dikirim via email")
 	}
 
 	forgotPassword, err := s.forgotPasswordRepo.CreateForgotPassword(ctx, email)
 	if err != nil {
 		log.Printf("ForgotPassword: gagal membuat kode OTP untuk user %d: %v", user.ID, err)
-		return fmt.Errorf("gagal membuat kode OTP: %w", err)
+		return models.ForgotPassword{}, fmt.Errorf("gagal membuat kode OTP: %w", err)
 	}
 
 	fmt.Println("OTP codenya", forgotPassword.CodeOTP)
 
-	return nil
+	return forgotPassword, nil
 
 }
 
 func (s *ForgotPasswordService) ResetPassword(ctx context.Context, req models.ResetPasswordRequest) error {
 
-	if req.NewPassword != req.ConfirmPassword {
-		return errors.New("password tidak sesuai")
-	}
+	//if req.NewPassword != req.ConfirmPassword {
+	//	return errors.New("password tidak sesuai")
+	//}
 
 	otp, err := s.forgotPasswordRepo.GetDataByEmail(ctx, req.Email)
 	fmt.Println("otp", otp)
@@ -67,7 +69,14 @@ func (s *ForgotPasswordService) ResetPassword(ctx context.Context, req models.Re
 	//	return errors.New("failed to reset password")
 	//}
 
-	if err := s.userRepo.UpdatePassword(ctx, req.NewPassword, user.ID); err != nil {
+	// Hash password
+	hashedPassword, err := lib.HashPassword(req.NewPassword)
+	fmt.Println("hashedPassword", hashedPassword)
+	if err != nil {
+		fmt.Errorf("failed to hash password: %w", err)
+	}
+
+	if err := s.userRepo.UpdatePassword(ctx, hashedPassword, user.ID); err != nil {
 		log.Printf("ResetPassword: gagal mengupdate password - userID: %d, error: %v", user.ID, err)
 		return fmt.Errorf("gagal mengupdate password: %w", err)
 	}

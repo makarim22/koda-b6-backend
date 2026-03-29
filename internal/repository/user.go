@@ -2,6 +2,7 @@ package repository
 
 import (
 	"context"
+	"fmt"
 	"koda-b6-backend/internal/models"
 
 	"github.com/jackc/pgx/v5"
@@ -17,19 +18,58 @@ func NewUserRepository(db *pgx.Conn) *UserRepository {
 	}
 }
 
+//func (u *UserRepository) GetAll(ctx context.Context) ([]models.User, error) {
+//	rows, err := u.db.Query(ctx,
+//		`SELECT id, full_name, email, password, phone FROM users`)
+//	if err != nil {
+//		return nil, err
+//	}
+//	defer rows.Close()
+//
+//	var users []models.User
+//	for rows.Next() {
+//		var user models.User
+//		err := rows.Scan(&user.ID, &user.Name, &user.Email, &user.Password, &user.Phone)
+//		if err != nil {
+//			return nil, err
+//		}
+//		users = append(users, user)
+//	}
+//
+//	if err = rows.Err(); err != nil {
+//		return nil, err
+//	}
+//
+//	return users, nil
+//}
+
 func (u *UserRepository) GetAll(ctx context.Context) ([]models.User, error) {
 	rows, err := u.db.Query(ctx,
 		`SELECT id, full_name, email, password, phone FROM users`)
 	if err != nil {
+		fmt.Printf("[DEBUG] Query error: %v\n", err)
 		return nil, err
 	}
 	defer rows.Close()
 
-	users, err := pgx.CollectRows(rows, pgx.RowToStructByName[models.User])
-	if err != nil {
+	var users []models.User
+	for rows.Next() {
+		var user models.User
+		err := rows.Scan(&user.ID, &user.Name, &user.Email, &user.Password, &user.Phone)
+		if err != nil {
+			fmt.Printf("[DEBUG] Scan error: %v\n", err)
+			return nil, err
+		}
+		fmt.Printf("[DEBUG] Retrieved user: ID=%d, Name=%s, Email=%s\n", user.ID, user.Name, user.Email)
+		users = append(users, user)
+	}
+
+	if err = rows.Err(); err != nil {
+		fmt.Printf("[DEBUG] Rows iteration error: %v\n", err)
 		return nil, err
 	}
 
+	fmt.Printf("[DEBUG] Total users retrieved: %d\n", len(users))
 	return users, nil
 }
 

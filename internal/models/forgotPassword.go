@@ -12,10 +12,10 @@ type ForgotPassword struct {
 }
 
 type ResetPasswordRequest struct {
-	Email           string `json:"email" validate:"required,email"`
-	CodeOTP         string `json:"code_otp" validate:"required"`
-	NewPassword     string `json:"new_password" validate:"required,min=8,max=128"`
-	ConfirmPassword string `json:"confirm_password" validate:"required,min=8,max=128"`
+	Email       string `json:"email" validate:"required,email"`
+	CodeOTP     string `json:"code_otp" validate:"required"`
+	NewPassword string `json:"new_password" validate:"required,min=8,max=128"`
+	//ConfirmPassword string `json:"confirm_password" validate:"required,min=8,max=128"`
 }
 
 type ForgotPasswordRequest struct {

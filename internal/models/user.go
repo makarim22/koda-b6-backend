@@ -1,11 +1,11 @@
 package models
 
 type User struct {
-	ID       int    `json:"id" db:"id"`
-	Name     string `json:"name" db:"full_name"`
-	Email    string `json:"email" db:"email"`
-	Password string `json:"password" db:"password"`
-	Phone    string `json:"phone" db:"phone"`
+	ID       int     `json:"id" db:"id"`
+	Name     string  `json:"name" db:"full_name"`
+	Email    string  `json:"email" db:"email"`
+	Password string  `json:"password" db:"password"`
+	Phone    *string `json:"phone" db:"phone"`
 }
 
 type LoginPayload struct {
@@ -24,10 +24,10 @@ type RegisterPayload struct {
 }
 
 type RegisterRequest struct {
-	Name            string `json:"name" binding:"required"`
-	Email           string `json:"email" binding:"required,email"`
-	Password        string `json:"password" binding:"required,min=6"`
-	ConfirmPassword string `json:"confirm_password" binding:"required,min=6"`
+	Name     string `json:"name" binding:"required"`
+	Email    string `json:"email" binding:"required,email"`
+	Password string `json:"password" binding:"required,min=6"`
+	//ConfirmPassword string `json:"confirm_password" binding:"min=6"`
 }
 
 type LoginRequest struct {
