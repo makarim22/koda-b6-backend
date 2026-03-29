@@ -55,3 +55,15 @@ func (r *PaymentRepository) UpdateStatus(ctx context.Context, id int, status str
 	}
 	return nil
 }
+
+func (r *PaymentRepository) Delete(ctx context.Context, id int) error {
+	query := `DELETE FROM payment WHERE id = $1`
+	result, err := r.db.Exec(ctx, query, id)
+	if err != nil {
+		return fmt.Errorf("failed to delete payment: %w", err)
+	}
+	if result.RowsAffected() == 0 {
+		return fmt.Errorf("payment with ID %d not found", id)
+	}
+	return nil
+}

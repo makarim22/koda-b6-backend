@@ -46,7 +46,7 @@ func (s *PaymentService) GetByID(ctx context.Context, id int) (*models.Payment, 
 		return nil, errors.NewValidationError("id", "must be positive")
 	}
 
-	payment, err := s.paymentRepo.GetByID(ctx, id)
+	payment, err := s.paymentRepo.GetByOrderID(ctx, id)
 	if err != nil {
 		if errors.IsNotFoundError(err) {
 			return nil, err
