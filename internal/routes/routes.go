@@ -22,6 +22,7 @@ func SetupRoutes(router *gin.Engine, container *di.Container) {
 	paymentHandler := container.PaymentHandler()
 	variantHandler := container.VariantHandler()
 	sizeHandler := container.SizeHandler()
+	productDiscountHandler := container.ProductDiscountHandler()
 
 	api := router.Group("/admin")
 	{
@@ -44,6 +45,7 @@ func SetupRoutes(router *gin.Engine, container *di.Container) {
 			products.PUT("/:id", productHandler.UpdateProduct)
 			products.GET("/:id/variants", variantHandler.GetVariantsByProductID)
 			products.GET("/:id/sizes", sizeHandler.GetSizeByProductID)
+			products.GET("/:id/discounts", productDiscountHandler.GetDiscountsByProductID)
 		}
 	}
 	{
