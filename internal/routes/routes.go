@@ -3,6 +3,7 @@ package routes
 import (
 	// "fmt"
 	"koda-b6-backend/internal/di"
+	"koda-b6-backend/internal/middleware"
 
 	"github.com/gin-gonic/gin"
 	// "github.com/jackc/pgx/v5"
@@ -70,6 +71,7 @@ func SetupRoutes(router *gin.Engine, container *di.Container) {
 		}
 	}
 	cartGroup := router.Group("/api/cart")
+	cartGroup.Use(middleware.AuthMiddleware())
 	{
 		cartGroup.GET("", cartHandler.GetCart)
 		//cartGroup.GET("/summary", cartHandler.GetCartSummary)
