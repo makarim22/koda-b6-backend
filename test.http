@@ -45,7 +45,7 @@ POST http://localhost:8888/admin/auth/forgot-password HTTP/1.1
 content-type: application/json
 
 {
-  "email": "jack@gmail.com"
+  "email": "anton@gmail.com"
 }
 
 ###
@@ -65,4 +65,8 @@ DELETE http://localhost:8888/api/v1/users/2 HTTP/1.1
 
 ###
 GET http://localhost:8888/api/v1/products HTTP/1.1
+content-type: application/application/json
+
+###
+GET http://localhost:8888/admin/products/1/variants HTTP/1.1
 content-type: application/application/json

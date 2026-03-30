@@ -19,7 +19,7 @@ func NewVariantRepository(db *pgx.Conn) *VariantRepository {
 }
 
 func (r *VariantRepository) GetVariantsByProductID(ctx context.Context, productID int) ([]models.Variant, error) {
-	query := `select v.id, v.name, v.additional_price from variants v join product_variant pv on v.id = pv.variant_id where pv.product_id = ?`
+	query := `select v.id, v.name, v.additional_price from variants v join product_variant pv on v.id = pv.variant_id where pv.product_id = $1`
 	rows, err := r.db.Query(ctx, query, productID)
 
 	if err != nil {

@@ -58,6 +58,11 @@ type Container struct {
 	paymentRepo    *repository.PaymentRepository
 	paymentService *service.PaymentService
 	paymentHandler *handlers.PaymentHandler
+
+	//variant
+	variantRepo    *repository.VariantRepository
+	variantService *service.VariantService
+	variantHandler *handlers.VariantHandler
 }
 
 func NewContainer(db *pgx.Conn) (*Container, error) {
@@ -122,6 +127,11 @@ func (c *Container) initDependencies() {
 	c.paymentService = service.NewPaymentService(c.paymentRepo, c.orderRepo)
 	c.paymentHandler = handlers.NewPaymentHandler(c.paymentService)
 
+	//variant
+	c.variantRepo = repository.NewVariantRepository(c.db)
+	c.variantService = service.NewVariantService(c.variantRepo)
+	c.variantHandler = handlers.NewVariantHandler(c.variantService)
+
 }
 
 func (c *Container) UserHandler() *handlers.UserHandler {
@@ -159,3 +169,5 @@ func (c *Container) ProductCategoryHandler() *handlers.ProductCategoryHandler {
 func (c *Container) OrderDetailHandler() *handlers.OrderDetailHandler { return c.orderDetailHandler }
 
 func (c *Container) PaymentHandler() *handlers.PaymentHandler { return c.paymentHandler }
+
+func (c *Container) VariantHandler() *handlers.VariantHandler { return c.variantHandler }

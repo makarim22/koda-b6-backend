@@ -20,6 +20,7 @@ func SetupRoutes(router *gin.Engine, container *di.Container) {
 	productCategoryHandler := container.ProductCategoryHandler()
 	orderDetailHandler := container.OrderDetailHandler()
 	paymentHandler := container.PaymentHandler()
+	variantHandler := container.VariantHandler()
 
 	api := router.Group("/admin")
 	{
@@ -40,6 +41,7 @@ func SetupRoutes(router *gin.Engine, container *di.Container) {
 			products.GET("/recommended-products", productHandler.MostReviewedProduct)
 			products.POST("", productHandler.CreateProduct)
 			products.PUT("/:id", productHandler.UpdateProduct)
+			products.GET("/:id/variants", variantHandler.GetVariantsByProductID)
 		}
 	}
 	{
@@ -104,4 +106,5 @@ func SetupRoutes(router *gin.Engine, container *di.Container) {
 			payments.DELETE("/:id", paymentHandler.Delete)
 		}
 	}
+
 }
