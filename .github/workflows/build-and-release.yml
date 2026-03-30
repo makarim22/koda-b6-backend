@@ -46,5 +46,5 @@ jobs:
           script: |
             cd server-jaka
             docker compose pull 
-            docker run --rm --network=server-jaka_webapps migrate/migrate:latest -source github://makarim22:${{ secrets.GITHUB_TOKEN }}@makarim22/koda-b6-backend/db/migrations -database postgresql://postgres:1@pg:5432/postgres?sslmode=disable up 
+            docker run --rm --network=server-jaka_webapps migrate/migrate:latest -source github://makarim22:${{ secrets.GITHUB_TOKEN }}@makarim22/koda-b6-backend/db/migrations -database postgresql://postgres:1@pg-db:5432/postgres?sslmode=disable up 
             docker compose up backend -d
