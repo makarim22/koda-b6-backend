@@ -68,6 +68,11 @@ type Container struct {
 	sizeRepo    *repository.SizeRepository
 	sizeService *service.SizeService
 	sizeHandler *handlers.SizeHandler
+
+	//product_discount
+	productDiscountRepo    *repository.ProductDiscountRepository
+	productDiscountService *service.ProductDiscountService
+	productDiscountHandler *handlers.ProductDiscountHandler
 }
 
 func NewContainer(db *pgx.Conn) (*Container, error) {
@@ -142,6 +147,11 @@ func (c *Container) initDependencies() {
 	c.sizeService = service.NewSizeService(c.sizeRepo)
 	c.sizeHandler = handlers.NewSizeHandler(c.sizeService)
 
+	//product_discount
+	c.productDiscountRepo = repository.NewProductDiscountRepository(c.db)
+	c.productDiscountService = service.NewProductDiscountService(c.productDiscountRepo)
+	c.productDiscountHandler = handlers.NewProductDiscountHandler(c.productDiscountService)
+
 }
 
 func (c *Container) UserHandler() *handlers.UserHandler {
@@ -183,3 +193,7 @@ func (c *Container) PaymentHandler() *handlers.PaymentHandler { return c.payment
 func (c *Container) VariantHandler() *handlers.VariantHandler { return c.variantHandler }
 
 func (c *Container) SizeHandler() *handlers.SizeHandler { return c.sizeHandler }
+
+func (c *Container) ProductDiscountHandler() *handlers.ProductDiscountHandler {
+	return c.productDiscountHandler
+}

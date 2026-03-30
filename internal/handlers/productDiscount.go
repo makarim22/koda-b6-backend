@@ -42,7 +42,7 @@ func (h *ProductDiscountHandler) GetDiscountsByProductID(c *gin.Context) {
 	discounts, err := h.service.GetDiscountsByProductID(ctx, productID)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
-			"error": "Failed to fetch variants",
+			"error": "Failed to fetch discounts",
 		})
 		return
 	}
