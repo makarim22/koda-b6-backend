@@ -70,3 +70,7 @@ content-type: application/application/json
 ###
 GET http://localhost:8888/admin/products/1/variants HTTP/1.1
 content-type: application/application/json
+
+###
+GET http://localhost:8888/admin/products/1/sizes HTTP/1.1
+content-type: application/application/json
