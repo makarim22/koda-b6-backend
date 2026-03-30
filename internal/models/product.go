@@ -37,6 +37,14 @@ type ProductImage struct {
 	IsPrimary bool   `json:"is_primary" db:"is_primary"`
 }
 
+type ProductDiscount struct {
+	ID           int    `json:"id" db:"id"`
+	ProductID    int    `json:"product_id" db:"product_id"`
+	DiscountRate string `json:"discount_rate" db:"discount_rate"`
+	Description  string `json:"description" db:"description"`
+	IsFlashSale  bool   `json:"is_flash_sale" db:"is_flash_sale"`
+}
+
 var products = map[int]Product{}
 
 var nextProductId = 1
