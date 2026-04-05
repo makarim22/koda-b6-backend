@@ -3,11 +3,6 @@ GET http://localhost:8888/admin/users HTTP/1.1
 content-type: application/application/json
 
 ###
-
-GET http://localhost:8888/api/v1/users/2 HTTP/1.1
-content-type: application/application/json
-
-###
 POST http://localhost:8888/api/v1/users HTTP/1.1
 content-type: application/application/json
 
@@ -34,10 +29,9 @@ POST http://localhost:8888/admin/auth/register HTTP/1.1
 content-type: application/json
 
 {
-    "name": "jaka",
-    "email": "jakamakarim222@gmail.com",
-    "password": "secret",
-    "confirm_password": "secret"
+    "name": "wildan",
+    "email": "wildan222@gmail.com",
+    "password": "secret22"
 }
 
 ###
@@ -64,7 +58,7 @@ content-type: application/json
 DELETE http://localhost:8888/api/v1/users/2 HTTP/1.1
 
 ###
-GET http://localhost:8888/api/v1/products HTTP/1.1
+GET http://localhost:8888/admin/products HTTP/1.1
 content-type: application/application/json
 
 ###
@@ -77,4 +71,12 @@ content-type: application/application/json
 
 ###
 GET http://localhost:8888/admin/products/1/discounts HTTP/1.1
+content-type: application/application/json
+
+###
+GET http://localhost:8888/admin/products/1/images HTTP/1.1
+content-type: application/application/json
+
+###
+GET http://localhost:8888/admin/products/recommended-products HTTP/1.1
 content-type: application/application/json

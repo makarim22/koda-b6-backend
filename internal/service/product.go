@@ -92,8 +92,8 @@ func (p *ProductService) DeleteProduct(ctx context.Context, id string) error {
 	return nil
 }
 
-func (p *ProductService) MostReviewedProduct(ctx context.Context) (*[]models.Product, error) {
-	products, err := p.productRepo.MostReview(ctx)
+func (p *ProductService) MostReviewedProduct(ctx context.Context) (*[]models.ProductWithImages, error) {
+	products, err := p.productRepo.MostReviewWithPrimaryImage(ctx)
 	if err != nil {
 		return nil, errors.New("gagal mengambil product")
 	}

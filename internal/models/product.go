@@ -37,6 +37,14 @@ type ProductImage struct {
 	IsPrimary bool   `json:"is_primary" db:"is_primary"`
 }
 
+type ProductWithImages struct {
+	ID          int
+	ProductName string
+	Description string
+	BasePrice   float64
+	Images      []ProductImage
+}
+
 type ProductDiscount struct {
 	ID           int    `json:"id" db:"id"`
 	ProductID    int    `json:"product_id" db:"product_id"`

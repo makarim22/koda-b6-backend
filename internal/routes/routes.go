@@ -23,6 +23,7 @@ func SetupRoutes(router *gin.Engine, container *di.Container) {
 	variantHandler := container.VariantHandler()
 	sizeHandler := container.SizeHandler()
 	productDiscountHandler := container.ProductDiscountHandler()
+	productImageHandler := container.ProductImageHandler()
 
 	api := router.Group("/admin")
 	{
@@ -46,6 +47,7 @@ func SetupRoutes(router *gin.Engine, container *di.Container) {
 			products.GET("/:id/variants", variantHandler.GetVariantsByProductID)
 			products.GET("/:id/sizes", sizeHandler.GetSizeByProductID)
 			products.GET("/:id/discounts", productDiscountHandler.GetDiscountsByProductID)
+			products.GET("/:id/images", productImageHandler.GetImageByID)
 		}
 	}
 	{

@@ -148,3 +148,71 @@ func (p *ProductRepository) UpdateStock(ctx context.Context, id, quantity int) e
 	_, err := p.db.Exec(ctx, query, quantity, id)
 	return err
 }
+
+func (p *ProductRepository) MostReviewWithPrimaryImage(ctx context.Context) (*[]models.ProductWithImages, error) {
+	var products []models.ProductWithImages
+
+	query := `
+	SELECT 
+		p.id, 
+		p.product_name, 
+		p.description, 
+		p.base_price,
+		pi.id as image_id,
+		pi.path,
+		pi.is_primary
+	FROM products p 
+	LEFT JOIN user_review ur ON p.id = ur.product_id
+	LEFT JOIN product_image pi ON p.id = pi.product_id AND pi.is_primary = true
+	GROUP BY p.id, p.product_name, p.description, p.base_price, pi.id, pi.path, pi.is_primary
+	ORDER BY COUNT(ur.product_id) DESC
+	`
+
+	rows, err := p.db.Query(ctx, query)
+	if err != nil {
+		return nil, fmt.Errorf("error querying most reviewed products with primary image: %w", err)
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		var product models.ProductWithImages
+		var imageID *int
+		var imagePath *string
+		var isPrimary *bool
+
+		err := rows.Scan(
+			&product.ID,
+			&product.ProductName,
+			&product.Description,
+			&product.BasePrice,
+			&imageID,
+			&imagePath,
+			&isPrimary,
+		)
+		if err != nil {
+			return nil, fmt.Errorf("error scanning product row: %w", err)
+		}
+
+		// Set image jika ada
+		if imageID != nil && imagePath != nil {
+			product.Images = []models.ProductImage{
+				{
+					ID:        *imageID,
+					ProductID: product.ID,
+					Path:      *imagePath,
+					IsPrimary: *isPrimary,
+				},
+			}
+		} else {
+			product.Images = []models.ProductImage{}
+		}
+
+		products = append(products, product)
+	}
+
+	if err = rows.Err(); err != nil {
+		return nil, fmt.Errorf("error iterating through product rows: %w", err)
+	}
+
+	return &products, nil
+}
