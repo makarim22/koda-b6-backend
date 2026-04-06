@@ -21,7 +21,7 @@ func NewOrderDetailRepository(db *pgxpool.Pool) *OrderDetailRepository {
 func (r *OrderDetailRepository) Create(ctx context.Context, detail *models.OrderDetail) error {
 	query := `INSERT INTO order_detail (order_id, product_id, size_id, temperature_id, quantity, unit_price) 
 	          VALUES ($1, $2, $3, $4, $5, $6) RETURNING id`
-	err := r.db.QueryRow(ctx, query, detail.OrderID, detail.ProductID, detail.SizeID, detail.TemperatureID, detail.Quantity, detail.Price).
+	err := r.db.QueryRow(ctx, query, detail.OrderID, detail.ProductID, detail.SizeID, detail.VariantID, detail.Quantity, detail.Price).
 		Scan(&detail.ID)
 	if err != nil {
 		return fmt.Errorf("failed to create order detail: %w", err)
@@ -40,7 +40,7 @@ func (r *OrderDetailRepository) GetByOrderID(ctx context.Context, orderID int) (
 	var details []models.OrderDetail
 	for rows.Next() {
 		var detail models.OrderDetail
-		err := rows.Scan(&detail.ID, &detail.OrderID, &detail.ProductID, &detail.SizeID, &detail.TemperatureID, &detail.Quantity)
+		err := rows.Scan(&detail.ID, &detail.OrderID, &detail.ProductID, &detail.SizeID, &detail.VariantID, &detail.Quantity)
 		if err != nil {
 			return nil, fmt.Errorf("failed to scan order detail: %w", err)
 		}

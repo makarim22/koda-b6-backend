@@ -7,8 +7,8 @@ POST http://localhost:8888/api/v1/users HTTP/1.1
 content-type: application/application/json
 
 {
-    "name": "jaka",
-    "email": "jakamakarim@gmail.com",
+    "name": "urif",
+    "email": "urif@gmail.com",
     "password": "221997",
     "phone": "081529939012"
 }
@@ -19,8 +19,8 @@ POST http://localhost:8888/admin/auth/login HTTP/1.1
 content-type: application/application/json
 
 {
-    "email": "jakamakarim222@gmail.com",
-    "password": "secret"
+    "email": "urif@gmail.com",
+    "password": "secret22"
 }
 
 
@@ -29,8 +29,8 @@ POST http://localhost:8888/admin/auth/register HTTP/1.1
 content-type: application/json
 
 {
-    "name": "wildan",
-    "email": "wildan222@gmail.com",
+    "name": "urif",
+    "email": "urif@gmail.com",
     "password": "secret22"
 }
 
@@ -83,4 +83,17 @@ content-type: application/application/json
 
 ###
 GET http://localhost:8888/admin/products HTTP/1.1
-content-type: application/application/json
+content-type: application/application/
+
+
+###
+POST http://localhost:8888/api/cart HTTP/1.1
+content-type: application/json
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjo1MywiZW1haWwiOiJ1cmlmQGdtYWlsLmNvbSIsImV4cCI6MTc3NTU4NjM4MSwiaWF0IjoxNzc1NDk5OTgxfQ.yvzq2jgQoZPF2ZG6uvwEVZ3tBU42W5J5Lh-v3IBvU_s
+
+{
+  "product_id": 10,
+  "size_id": 4,
+  "variant_id": 20,
+  "quantity": 3
+}

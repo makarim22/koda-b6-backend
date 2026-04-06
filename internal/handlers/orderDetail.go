@@ -29,12 +29,12 @@ func (h *OrderDetailHandler) Create(c *gin.Context) {
 	ctx := c.Request.Context()
 
 	detail := &models.OrderDetail{
-		OrderID:       req.OrderID,
-		ProductID:     req.ProductID,
-		SizeID:        &req.SizeID,
-		TemperatureID: &req.TemperatureID,
-		Quantity:      req.Quantity,
-		Price:         req.UnitPrice,
+		OrderID:   req.OrderID,
+		ProductID: req.ProductID,
+		SizeID:    &req.SizeID,
+		VariantID: &req.VariantID,
+		Quantity:  req.Quantity,
+		Price:     req.UnitPrice,
 	}
 
 	err := h.service.Create(ctx, detail)

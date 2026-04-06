@@ -87,15 +87,15 @@ func (s *OrderService) GetOrder(ctx context.Context, orderID int, customerID int
 
 	for _, detail := range details {
 		itemResponse := models.OrderDetailResponse{
-			ID:               detail.ID,
-			ProductID:        detail.ProductID,
-			ProductName:      detail.ProductName,
-			Quantity:         detail.Quantity,
-			Price:            detail.Price,
-			SizeID:           detail.SizeID,
-			SizeName:         detail.SizeName,
-			TemperatureID:    detail.TemperatureID,
-			TemperatureLabel: detail.TemperatureLabel,
+			ID:          detail.ID,
+			ProductID:   detail.ProductID,
+			ProductName: detail.ProductName,
+			Quantity:    detail.Quantity,
+			Price:       detail.Price,
+			SizeID:      detail.SizeID,
+			SizeName:    detail.SizeName,
+			VariantID:   detail.VariantID,
+			VariantName: detail.VariantName,
 		}
 		response.Items = append(response.Items, itemResponse)
 	}

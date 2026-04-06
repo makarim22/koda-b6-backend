@@ -25,16 +25,20 @@ func (s *CartService) AddToCart(ctx context.Context, customerID int, req models.
 		return nil, fmt.Errorf("product not found: %w", err)
 	}
 
+	if err := s.cartRepo.ValidateProductSizeVariant(ctx, req.ProductID, req.SizeID, req.VariantID); err != nil {
+		return nil, err
+	}
+
 	if product.Stock < req.Quantity {
 		return nil, fmt.Errorf("insufficient stock. available: %d, requested: %d", product.Stock, req.Quantity)
 	}
 
 	cart := &models.Cart{
-		CustomerID:    customerID,
-		ProductID:     req.ProductID,
-		SizeID:        req.SizeID,
-		TemperatureID: req.TemperatureID,
-		Quantity:      req.Quantity,
+		CustomerID: customerID,
+		ProductID:  req.ProductID,
+		SizeID:     req.SizeID,
+		VariantID:  req.VariantID,
+		Quantity:   req.Quantity,
 	}
 
 	if err := s.cartRepo.AddToCart(ctx, cart); err != nil {
@@ -128,3 +132,111 @@ func (s *CartService) ClearCart(ctx context.Context, customerID int) error {
 //		"subtotal":       subtotal,
 //	}, nil
 //}
+
+// validateAddToCartRequest validates the add to cart request parameters
+func validateAddToCartRequest(req models.AddToCartRequest) error {
+	if req.ProductID <= 0 {
+		return fmt.Errorf("invalid product ID")
+	}
+
+	if req.Quantity <= 0 {
+		return fmt.Errorf("quantity must be greater than 0")
+	}
+
+	if req.Quantity > 100 {
+		return fmt.Errorf("quantity exceeds maximum allowed: %d", req.Quantity)
+	}
+
+	return nil
+}
+
+// executeAddToCartTransaction handles the add to cart logic with transaction support
+// This method should either:
+// 1. Merge with existing cart item if same product/size/temperature combo exists
+func (s *CartService) executeAddToCartTransaction(ctx context.Context, customerID int, req models.AddToCartRequest) error {
+	// Check if item already exists in cart
+	existingItems, err := s.cartRepo.GetCartItems(ctx, customerID)
+	if err != nil {
+		return fmt.Errorf("failed to check existing cart items: %w", err)
+	}
+
+	// Find matching cart item (same product, size, temperature)
+	var existingItem *models.CartItem
+	for _, item := range existingItems {
+		if item.ProductID == req.ProductID &&
+			item.SizeID == req.SizeID &&
+			item.VariantID == req.VariantID {
+			existingItem = &item
+			break
+		}
+	}
+
+	// If item exists, merge quantities
+	if existingItem != nil {
+		newQuantity := existingItem.Quantity + req.Quantity
+
+		// Verify new total doesn't exceed stock
+		product, err := s.productRepo.GetByID(ctx, req.ProductID)
+		if err != nil {
+			return fmt.Errorf("product not found: %w", err)
+		}
+
+		if product.Stock < newQuantity {
+			return fmt.Errorf("insufficient stock for total quantity: available=%d, requested=%d", product.Stock, newQuantity)
+		}
+
+		// Update existing item - pass the cart item ID and new quantity
+		// isIncrement=false means we're setting the quantity directly, not incrementing
+		return s.cartRepo.UpdateCartQuantity(ctx, existingItem.ID, newQuantity, false)
+	}
+
+	// Create new cart item
+	cart := &models.Cart{
+		CustomerID: customerID,
+		ProductID:  req.ProductID,
+		SizeID:     req.SizeID,
+		VariantID:  req.VariantID,
+		Quantity:   req.Quantity,
+	}
+
+	return s.cartRepo.AddToCart(ctx, cart)
+}
+
+// AddToCartOptions extends AddToCart with more control over behavior
+type AddToCartOptions struct {
+	MergeWithExisting bool // If true, merge with existing cart item; if false, replace
+	ReserveStock      bool // If true, attempt to reserve stock immediately
+	ValidateOnly      bool // If true, validate but don't add to cart
+}
+
+// AddToCartWithOptions adds to cart with configurable behavior
+func (s *CartService) AddToCartWithOptions(ctx context.Context, customerID int, req models.AddToCartRequest, opts *AddToCartOptions) (*models.CartResponse, error) {
+	if opts == nil {
+		opts = &AddToCartOptions{MergeWithExisting: true}
+	}
+
+	// Validate request
+	if err := validateAddToCartRequest(req); err != nil {
+		return nil, err
+	}
+
+	// Fetch and validate product
+	product, err := s.productRepo.GetByID(ctx, req.ProductID)
+	if err != nil {
+		return nil, fmt.Errorf("product not found: %w", err)
+	}
+
+	if product.Stock < req.Quantity {
+		return nil, fmt.Errorf("insufficient stock: available=%d, requested=%d", product.Stock, req.Quantity)
+	}
+
+	if opts.ValidateOnly {
+		return nil, nil
+	}
+
+	if err := s.executeAddToCartTransaction(ctx, customerID, req); err != nil {
+		return nil, fmt.Errorf("failed to add to cart: %w", err)
+	}
+
+	return s.GetCart(ctx, customerID)
+}

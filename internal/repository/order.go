@@ -53,7 +53,7 @@ func (r *OrderRepository) CreateOrderDetails(ctx context.Context, orderID int, d
 			orderID,
 			detail.ProductID,
 			detail.SizeID,
-			detail.TemperatureID,
+			detail.VariantID,
 			detail.Price,
 			detail.Quantity,
 		)
@@ -105,11 +105,11 @@ func (r *OrderRepository) GetOrderDetails(ctx context.Context, orderID int) ([]m
 			p.base_price,
 			p.product_name,
 			s.name as size_name,
-			t.label as temperature_label
+			v.name as variant_name
 		FROM order_detail od
 		JOIN products p ON od.product_id = p.id
 		LEFT JOIN sizes s ON od.size_id = s.id
-		LEFT JOIN temperature t ON od.temperature_id = t.id
+		LEFT JOIN variants v ON od.temperature_id = v.id
 		WHERE od.order_id = $1
 	`
 
@@ -127,12 +127,12 @@ func (r *OrderRepository) GetOrderDetails(ctx context.Context, orderID int) ([]m
 			&detail.OrderID,
 			&detail.ProductID,
 			&detail.SizeID,
-			&detail.TemperatureID,
+			&detail.VariantID,
 			&detail.Quantity,
 			&detail.Price,
 			&detail.ProductName,
 			&detail.SizeName,
-			&detail.TemperatureLabel,
+			&detail.VariantName,
 		)
 		if err != nil {
 			return nil, fmt.Errorf("failed to scan order detail: %w", err)
@@ -214,16 +214,16 @@ func (r *OrderRepository) GetCartItems(ctx context.Context, customerID int) ([]m
 			0 as order_id,
 			c.product_id,
 			c.size_id,
-			c.temperature_id,
+			c.variant_id,
 			c.quantity,
 			p.base_price,
 			p.product_name,
 			s.name as size_name,
-			t.label as temperature_label
+			v.name as variant_name
 		FROM cart c
 		JOIN products p ON c.product_id = p.id
 		LEFT JOIN sizes s ON c.size_id = s.id
-		LEFT JOIN temperature t ON c.temperature_id = t.id
+		LEFT JOIN variants v ON c.variant_id = v.id
 		WHERE c.customer_id = $1
 	`
 
@@ -241,12 +241,12 @@ func (r *OrderRepository) GetCartItems(ctx context.Context, customerID int) ([]m
 			&item.OrderID,
 			&item.ProductID,
 			&item.SizeID,
-			&item.TemperatureID,
+			&item.VariantID,
 			&item.Quantity,
 			&item.Price,
 			&item.ProductName,
 			&item.SizeName,
-			&item.TemperatureLabel,
+			&item.VariantName,
 		)
 		if err != nil {
 			return nil, fmt.Errorf("failed to scan cart item: %w", err)

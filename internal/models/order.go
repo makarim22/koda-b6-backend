@@ -14,16 +14,16 @@ type Order struct {
 }
 
 type OrderDetail struct {
-	ID               int     `db:"id" json:"id"`
-	OrderID          int     `db:"order_id" json:"order_id"`
-	ProductID        int     `db:"product_id" json:"product_id"`
-	SizeID           *int    `db:"size_id" json:"size_id,omitempty"`
-	TemperatureID    *int    `db:"temperature_id" json:"temperature_id,omitempty"`
-	Quantity         int     `db:"quantity" json:"quantity"`
-	Price            float64 `db:"unit_price" json:"price"`
-	ProductName      string  `json:"product_name,omitempty"`
-	SizeName         string  `json:"size_name,omitempty"`
-	TemperatureLabel string  `json:"temperature_label,omitempty"`
+	ID          int     `db:"id" json:"id"`
+	OrderID     int     `db:"order_id" json:"order_id"`
+	ProductID   int     `db:"product_id" json:"product_id"`
+	SizeID      *int    `db:"size_id" json:"size_id,omitempty"`
+	VariantID   *int    `db:"variant_id" json:"variant_id,omitempty"`
+	Quantity    int     `db:"quantity" json:"quantity"`
+	Price       float64 `db:"unit_price" json:"price"`
+	ProductName string  `json:"product_name,omitempty"`
+	SizeName    string  `json:"size_name,omitempty"`
+	VariantName string  `json:"variant_name,omitempty"`
 }
 
 type CreateOrderRequest struct {
@@ -45,15 +45,15 @@ type OrderResponse struct {
 }
 
 type OrderDetailResponse struct {
-	ID               int     `json:"id"`
-	ProductID        int     `json:"product_id"`
-	ProductName      string  `json:"product_name"`
-	Quantity         int     `json:"quantity"`
-	Price            float64 `json:"price"`
-	SizeID           *int    `json:"size_id,omitempty"`
-	SizeName         string  `json:"size_name,omitempty"`
-	TemperatureID    *int    `json:"temperature_id,omitempty"`
-	TemperatureLabel string  `json:"temperature_label,omitempty"`
+	ID          int     `json:"id"`
+	ProductID   int     `json:"product_id"`
+	ProductName string  `json:"product_name"`
+	Quantity    int     `json:"quantity"`
+	Price       float64 `json:"price"`
+	SizeID      *int    `json:"size_id,omitempty"`
+	SizeName    string  `json:"size_name,omitempty"`
+	VariantID   *int    `json:"variant_id,omitempty"`
+	VariantName string  `json:"variant_name,omitempty"`
 }
 
 type UpdateOrderStatusRequest struct {
@@ -61,12 +61,12 @@ type UpdateOrderStatusRequest struct {
 }
 
 type CreateOrderDetailRequest struct {
-	OrderID       int     `json:"order_id" binding:"required"`
-	ProductID     int     `json:"product_id" binding:"required"`
-	SizeID        int     `json:"size_id" binding:"required"`
-	TemperatureID int     `json:"temperature_id" binding:"required"`
-	Quantity      int     `json:"quantity" binding:"required,min=1"`
-	UnitPrice     float64 `json:"unit_price" binding:"required,min=0"`
+	OrderID   int     `json:"order_id" binding:"required"`
+	ProductID int     `json:"product_id" binding:"required"`
+	SizeID    int     `json:"size_id" binding:"required"`
+	VariantID int     `json:"variant_id" binding:"required"`
+	Quantity  int     `json:"quantity" binding:"required,min=1"`
+	UnitPrice float64 `json:"unit_price" binding:"required,min=0"`
 }
 
 type UpdateOrderDetailRequest struct {
