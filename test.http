@@ -1,5 +1,5 @@
 
-GET http://localhost:8888/admin/users HTTP/1.1
+GET http://localhost:8888/api/users HTTP/1.1
 content-type: application/application/json
 
 ###
@@ -15,7 +15,7 @@ content-type: application/application/json
 
 ###
 
-POST http://localhost:8888/admin/auth/login HTTP/1.1
+POST http://localhost:8888/api/auth/login HTTP/1.1
 content-type: application/application/json
 
 {
@@ -25,7 +25,7 @@ content-type: application/application/json
 
 
 ###
-POST http://localhost:8888/admin/auth/register HTTP/1.1
+POST http://localhost:8888/api/auth/register HTTP/1.1
 content-type: application/json
 
 {
@@ -35,7 +35,7 @@ content-type: application/json
 }
 
 ###
-POST http://localhost:8888/admin/auth/forgot-password HTTP/1.1
+POST http://localhost:8888/api/auth/forgot-password HTTP/1.1
 content-type: application/json
 
 {
@@ -43,7 +43,7 @@ content-type: application/json
 }
 
 ###
-POST http://localhost:8888/admin/auth/reset-password HTTP/1.1
+POST http://localhost:8888/api/auth/reset-password HTTP/1.1
 content-type: application/json
 
 {
@@ -58,31 +58,31 @@ content-type: application/json
 DELETE http://localhost:8888/api/v1/users/2 HTTP/1.1
 
 ###
-GET http://localhost:8888/admin/products HTTP/1.1
+GET http://localhost:8888/api/products HTTP/1.1
 content-type: application/application/json
 
 ###
-GET http://localhost:8888/admin/products/35/variants HTTP/1.1
+GET http://localhost:8888/api/products/35/variants HTTP/1.1
 content-type: application/json
 
 ###
-GET http://localhost:8888/admin/products/33/sizes HTTP/1.1
+GET http://localhost:8888/api/products/33/sizes HTTP/1.1
 content-type: application/json
 
 ###
-GET http://localhost:8888/admin/products/1/discounts HTTP/1.1
+GET http://localhost:8888/api/products/1/discounts HTTP/1.1
 content-type: application/application/json
 
 ###
-GET http://localhost:8888/admin/products/1/images HTTP/1.1
+GET http://localhost:8888/api/products/1/images HTTP/1.1
 content-type: application/json
 
 ###
-GET http://localhost:8888/admin/products/recommended-products HTTP/1.1
+GET http://localhost:8888/api/products/recommended-products HTTP/1.1
 content-type: application/application/json
 
 ###
-GET http://localhost:8888/admin/products HTTP/1.1
+GET http://localhost:8888/api/products HTTP/1.1
 content-type: application/application/
 
 
@@ -110,7 +110,7 @@ content-type: application/json
 Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjo1MywiZW1haWwiOiJ1cmlmQGdtYWlsLmNvbSIsImV4cCI6MTc3NTU5MDY3OCwiaWF0IjoxNzc1NTA0Mjc4fQ.Xd1wIBwxQ_yjVAI5SgauZAGfjQqSEgrE0mW1GyELCbI
 
 ###
-POST http://localhost:8888/admin/orders HTTP/1.1
+POST http://localhost:8888/api/orders HTTP/1.1
 content-type: application/json
 Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjo1MywiZW1haWwiOiJ1cmlmQGdtYWlsLmNvbSIsImV4cCI6MTc3NTU5MDY3OCwiaWF0IjoxNzc1NTA0Mjc4fQ.Xd1wIBwxQ_yjVAI5SgauZAGfjQqSEgrE0mW1GyELCbI
 
@@ -118,3 +118,7 @@ Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjo1MywiZ
   "delivery_fee": 10000,
   "tax": 5000
 }
+
+###
+GET http://localhost:8888/api/products/1/images HTTP/1.1
+content-type: application/application/

@@ -25,7 +25,7 @@ func SetupRoutes(router *gin.Engine, container *di.Container) {
 	productDiscountHandler := container.ProductDiscountHandler()
 	productImageHandler := container.ProductImageHandler()
 
-	api := router.Group("/admin")
+	api := router.Group("/api")
 	{
 		users := api.Group("/users")
 		{
@@ -79,7 +79,7 @@ func SetupRoutes(router *gin.Engine, container *di.Container) {
 			}
 		}
 	}
-	cartGroup := router.Group("/api/cart")
+	cartGroup := router.Group("/cart")
 	cartGroup.Use(middleware.AuthMiddleware())
 	{
 		cartGroup.GET("", cartHandler.GetUserCart)
@@ -104,14 +104,13 @@ func SetupRoutes(router *gin.Engine, container *di.Container) {
 		productCategories.PUT("/:id", productCategoryHandler.UpdateCategory)
 		productCategories.DELETE("/:id", productCategoryHandler.DeleteCategory)
 	}
+
+	payments := api.Group("/payments")
 	{
-		payments := api.Group("/payments")
-		{
-			payments.POST("", paymentHandler.Create)
-			payments.GET("/:id", paymentHandler.GetByID)
-			payments.PUT("/:id", paymentHandler.UpdateStatus)
-			payments.DELETE("/:id", paymentHandler.Delete)
-		}
+		payments.POST("", paymentHandler.Create)
+		payments.GET("/:id", paymentHandler.GetByID)
+		payments.PUT("/:id", paymentHandler.UpdateStatus)
+		payments.DELETE("/:id", paymentHandler.Delete)
 	}
 
 }
