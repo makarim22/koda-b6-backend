@@ -81,8 +81,8 @@ func SetupRoutes(router *gin.Engine, container *di.Container) {
 	cartGroup := router.Group("/api/cart")
 	cartGroup.Use(middleware.AuthMiddleware())
 	{
-		cartGroup.GET("", cartHandler.GetCart)
-		//cartGroup.GET("/summary", cartHandler.GetCartSummary)
+		cartGroup.GET("", cartHandler.GetUserCart)
+		cartGroup.GET("/summary", cartHandler.GetCartSummary)
 		cartGroup.POST("", cartHandler.AddToCart)
 		cartGroup.PUT("/:cart_id", cartHandler.UpdateCartItem)
 		cartGroup.DELETE("/:cart_id", cartHandler.RemoveFromCart)

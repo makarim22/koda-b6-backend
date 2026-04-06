@@ -97,3 +97,15 @@ Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjo1MywiZ
   "variant_id": 20,
   "quantity": 3
 }
+
+###
+GET http://localhost:8888/api/cart/summary HTTP/1.1
+content-type: application/json
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjo1MywiZW1haWwiOiJ1cmlmQGdtYWlsLmNvbSIsImV4cCI6MTc3NTU4NjM4MSwiaWF0IjoxNzc1NDk5OTgxfQ.yvzq2jgQoZPF2ZG6uvwEVZ3tBU42W5J5Lh-v3IBvU_s
+
+
+###
+GET http://localhost:8888/api/cart HTTP/1.1
+content-type: application/json
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjo1MywiZW1haWwiOiJ1cmlmQGdtYWlsLmNvbSIsImV4cCI6MTc3NTU4NjM4MSwiaWF0IjoxNzc1NDk5OTgxfQ.yvzq2jgQoZPF2ZG6uvwEVZ3tBU42W5J5Lh-v3IBvU_s
+

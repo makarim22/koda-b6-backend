@@ -113,26 +113,6 @@ func (s *CartService) ClearCart(ctx context.Context, customerID int) error {
 	return s.cartRepo.ClearCart(ctx, customerID)
 }
 
-//func (s *CartService) GetCartSummary(ctx context.Context, customerID int) (map[string]interface{}, error) {
-//	items, err := s.cartRepo.GetCartItems(ctx, customerID)
-//	if err != nil {
-//		return nil, fmt.Errorf("failed to get cart: %w", err)
-//	}
-//
-//	subtotal := 0.0
-//	totalQuantity := 0
-//	for _, item := range items {
-//		subtotal += item.Subtotal
-//		totalQuantity += item.Quantity
-//	}
-//
-//	return map[string]interface{}{
-//		"total_items":    len(items),
-//		"total_quantity": totalQuantity,
-//		"subtotal":       subtotal,
-//	}, nil
-//}
-
 // validateAddToCartRequest validates the add to cart request parameters
 func validateAddToCartRequest(req models.AddToCartRequest) error {
 	if req.ProductID <= 0 {
@@ -239,4 +219,32 @@ func (s *CartService) AddToCartWithOptions(ctx context.Context, customerID int, 
 	}
 
 	return s.GetCart(ctx, customerID)
+}
+
+func (s *CartService) GetCartSummary(ctx context.Context, customerID int) (map[string]interface{}, error) {
+	items, err := s.cartRepo.GetCartItems(ctx, customerID)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get cart: %w", err)
+	}
+
+	subtotal := 0.0
+	totalQuantity := 0
+	for _, item := range items {
+		subtotal += item.Subtotal
+		totalQuantity += item.Quantity
+	}
+
+	return map[string]interface{}{
+		"total_items":    len(items),
+		"total_quantity": totalQuantity,
+		"subtotal":       subtotal,
+	}, nil
+}
+
+func (s *CartService) GetUserCart(ctx context.Context, customerID int) ([]models.CartItem, error) {
+	items, err := s.cartRepo.GetCartItems(ctx, customerID)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get cart: %w", err)
+	}
+	return items, nil
 }

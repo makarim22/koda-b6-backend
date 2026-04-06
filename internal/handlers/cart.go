@@ -212,31 +212,54 @@ func (h *CartHandler) ClearCart(c *gin.Context) {
 	})
 }
 
-//func (h *CartHandler) GetCartSummary(c *gin.Context) {
-//	// Get customer ID from JWT context
-//	customerID, exists := c.Get("user_id")
-//	if !exists {
-//		c.JSON(http.StatusUnauthorized, models.ApiResponse{
-//			Success: false,
-//			Message: "Unauthorized",
-//		})
-//		return
-//	}
-//
-//	ctx := c.Request.Context()
-//
-//	summary, err := h.cartService.GetCartSummary(ctx, customerID.(int))
-//	if err != nil {
-//		c.JSON(http.StatusInternalServerError, models.ApiResponse{
-//			Success: false,
-//			Message: err.Error(),
-//		})
-//		return
-//	}
-//
-//	c.JSON(http.StatusOK, models.ApiResponse{
-//		Success: true,
-//		Message: "Cart summary retrieved",
-//		Data:    summary,
-//	})
-//}
+func (h *CartHandler) GetCartSummary(c *gin.Context) {
+	// Get customer ID from JWT context
+	customerID, exists := c.Get("user_id")
+	if !exists {
+		c.JSON(http.StatusUnauthorized, models.ApiResponse{
+			Success: false,
+			Message: "Unauthorized",
+		})
+		return
+	}
+
+	ctx := c.Request.Context()
+
+	summary, err := h.cartService.GetCartSummary(ctx, customerID.(int))
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, models.ApiResponse{
+			Success: false,
+			Message: err.Error(),
+		})
+		return
+	}
+
+	c.JSON(http.StatusOK, models.ApiResponse{
+		Success: true,
+		Message: "Cart summary retrieved",
+		Data:    summary,
+	})
+}
+
+func (h *CartHandler) GetUserCart(c *gin.Context) {
+	customerID, exists := c.Get("user_id")
+	if !exists {
+		c.JSON(http.StatusUnauthorized, models.ApiResponse{
+			Success: false,
+		})
+	}
+	ctx := c.Request.Context()
+
+	cart, err := h.cartService.GetCart(ctx, customerID.(int))
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, models.ApiResponse{
+			Success: false,
+		})
+	}
+	c.JSON(http.StatusOK, models.ApiResponse{
+		Success: true,
+		Message: "User cart retrieved",
+		Data:    cart,
+	})
+
+}
