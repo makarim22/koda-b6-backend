@@ -45,8 +45,8 @@ func (r *OrderRepository) CreateOrder(ctx context.Context, order *models.Order) 
 func (r *OrderRepository) CreateOrderDetails(ctx context.Context, orderID int, details []models.OrderDetail) error {
 	for _, detail := range details {
 		query := `
-			INSERT INTO order_detail (order_id, product_id, size_id, temperature_id, unit_price, quantity)
-			VALUES ($1, $2, $3, $4, $5, $6)
+			INSERT INTO order_items (order_id, product_id, size_id, variant_id, unit_price, quantity, subtotal)
+			VALUES ($1, $2, $3, $4, $5, $6, $7)
 		`
 
 		_, err := r.db.Exec(ctx, query,
@@ -56,6 +56,7 @@ func (r *OrderRepository) CreateOrderDetails(ctx context.Context, orderID int, d
 			detail.VariantID,
 			detail.Price,
 			detail.Quantity,
+			detail.Subtotal,
 		)
 
 		if err != nil {
@@ -219,7 +220,8 @@ func (r *OrderRepository) GetCartItems(ctx context.Context, customerID int) ([]m
 			p.base_price,
 			p.product_name,
 			s.name as size_name,
-			v.name as variant_name
+			v.name as variant_name,
+		    (p.base_price * c.quantity) as subtotal
 		FROM cart c
 		JOIN products p ON c.product_id = p.id
 		LEFT JOIN sizes s ON c.size_id = s.id
@@ -247,6 +249,7 @@ func (r *OrderRepository) GetCartItems(ctx context.Context, customerID int) ([]m
 			&item.ProductName,
 			&item.SizeName,
 			&item.VariantName,
+			&item.Subtotal,
 		)
 		if err != nil {
 			return nil, fmt.Errorf("failed to scan cart item: %w", err)

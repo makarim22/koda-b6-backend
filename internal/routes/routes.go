@@ -62,6 +62,7 @@ func SetupRoutes(router *gin.Engine, container *di.Container) {
 	}
 	{
 		orders := api.Group("/orders")
+		orders.Use(middleware.AuthMiddleware())
 		{
 			orders.POST("", orderHandler.CreateOrder)
 			orders.GET("", orderHandler.GetUserOrders)

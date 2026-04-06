@@ -24,6 +24,7 @@ type OrderDetail struct {
 	ProductName string  `json:"product_name,omitempty"`
 	SizeName    string  `json:"size_name,omitempty"`
 	VariantName string  `json:"variant_name,omitempty"`
+	Subtotal    float64 `db:"subtotal" json:"subtotal"`
 }
 
 type CreateOrderRequest struct {
