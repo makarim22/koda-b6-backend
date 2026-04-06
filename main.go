@@ -11,6 +11,7 @@ import (
 	"os"
 
 	"github.com/gin-gonic/gin"
+	"github.com/jackc/pgx/v5/pgxpool"
 
 	"github.com/jackc/pgx/v5"
 	"github.com/joho/godotenv"
@@ -34,7 +35,6 @@ func corsMiddleware() gin.HandlerFunc {
 var db *pgx.Conn
 
 func main() {
-
 	if err := lib.InitConfig(); err != nil {
 		log.Fatalf("Failed to initialize config: %v", err)
 	}
@@ -57,20 +57,30 @@ func main() {
 	}
 
 	ctx := context.Background()
-	conn, err := pgx.Connect(ctx, databaseURL)
+
+	// Use pgxpool instead of single connection
+	poolConfig, err := pgxpool.ParseConfig(databaseURL)
 	if err != nil {
-		log.Fatalf("❌ Unable to connect to database: %v", err)
+		log.Fatalf("❌ Failed to parse database config: %v", err)
 	}
 
-	if err := conn.Ping(ctx); err != nil {
-		conn.Close(ctx)
+	// Configure pool for concurrent requests
+	poolConfig.MaxConns = 25
+	poolConfig.MinConns = 5
+
+	pool, err := pgxpool.NewWithConfig(ctx, poolConfig)
+	if err != nil {
+		log.Fatalf("❌ Unable to create connection pool: %v", err)
+	}
+	defer pool.Close()
+
+	if err := pool.Ping(ctx); err != nil {
 		log.Fatalf("❌ Could not ping database: %v", err)
 	}
 
 	log.Println("✅ Successfully connected to the database!")
-	defer conn.Close(ctx)
 
-	container, err := di.NewContainer(conn)
+	container, err := di.NewContainer(pool)
 	if err != nil {
 		log.Fatalf("❌ Failed to initialize container: %v", err)
 	}

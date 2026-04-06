@@ -3,15 +3,17 @@ package repository
 import (
 	"context"
 	"fmt"
-	"github.com/jackc/pgx/v5"
+	//"github.com/jackc/pgx/v5"
+	"github.com/jackc/pgx/v5/pgxpool"
+
 	"koda-b6-backend/internal/models"
 )
 
 type ProductImageRepository struct {
-	db *pgx.Conn
+	db *pgxpool.Pool
 }
 
-func NewProductImageRepository(db *pgx.Conn) *ProductImageRepository {
+func NewProductImageRepository(db *pgxpool.Pool) *ProductImageRepository {
 	return &ProductImageRepository{
 		db: db,
 	}

@@ -7,14 +7,14 @@ import (
 	"fmt"
 	"koda-b6-backend/internal/models"
 
-	"github.com/jackc/pgx/v5"
+	"github.com/jackc/pgx/v5/pgxpool"
 )
 
 type PaymentRepository struct {
-	db *pgx.Conn
+	db *pgxpool.Pool
 }
 
-func NewPaymentRepository(db *pgx.Conn) *PaymentRepository {
+func NewPaymentRepository(db *pgxpool.Pool) *PaymentRepository {
 	return &PaymentRepository{
 		db: db,
 	}

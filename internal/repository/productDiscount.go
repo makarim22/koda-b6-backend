@@ -5,14 +5,15 @@ import (
 	"fmt"
 	"koda-b6-backend/internal/models"
 
-	"github.com/jackc/pgx/v5"
+	//"github.com/jackc/pgx/v5"
+	"github.com/jackc/pgx/v5/pgxpool"
 )
 
 type ProductDiscountRepository struct {
-	db *pgx.Conn
+	db *pgxpool.Pool
 }
 
-func NewProductDiscountRepository(db *pgx.Conn) *ProductDiscountRepository {
+func NewProductDiscountRepository(db *pgxpool.Pool) *ProductDiscountRepository {
 	return &ProductDiscountRepository{
 		db: db,
 	}

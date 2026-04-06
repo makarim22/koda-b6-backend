@@ -6,11 +6,13 @@ import (
 	"koda-b6-backend/internal/repository"
 	"koda-b6-backend/internal/service"
 
-	"github.com/jackc/pgx/v5"
+	//"github.com/jackc/pgx/v5"
+	"github.com/jackc/pgx/v5/pgxpool"
 )
 
 type Container struct {
-	db *pgx.Conn
+	//db *pgx.Conn
+	db *pgxpool.Pool
 
 	// user
 	userRepo    *repository.UserRepository
@@ -80,7 +82,7 @@ type Container struct {
 	productImageHandler *handlers.ProductImageHandler
 }
 
-func NewContainer(db *pgx.Conn) (*Container, error) {
+func NewContainer(db *pgxpool.Pool) (*Container, error) {
 	if db == nil {
 		return nil, fmt.Errorf("database connection cannot be nil")
 	}

@@ -5,14 +5,14 @@ import (
 	"fmt"
 	"koda-b6-backend/internal/models"
 
-	"github.com/jackc/pgx/v5"
+	"github.com/jackc/pgx/v5/pgxpool"
 )
 
 type OrderDetailRepository struct {
-	db *pgx.Conn
+	db *pgxpool.Pool
 }
 
-func NewOrderDetailRepository(db *pgx.Conn) *OrderDetailRepository {
+func NewOrderDetailRepository(db *pgxpool.Pool) *OrderDetailRepository {
 	return &OrderDetailRepository{
 		db: db,
 	}

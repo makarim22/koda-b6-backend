@@ -39,7 +39,7 @@ POST http://localhost:8888/admin/auth/forgot-password HTTP/1.1
 content-type: application/json
 
 {
-  "email": "anton@gmail.com"
+  "email": "laksana.laksana.herlambang@gmail.com"
 }
 
 ###
@@ -63,11 +63,11 @@ content-type: application/application/json
 
 ###
 GET http://localhost:8888/admin/products/35/variants HTTP/1.1
-content-type: application/application/json
+content-type: application/json
 
 ###
-GET http://localhost:8888/admin/products/7/sizes HTTP/1.1
-content-type: application/application/json
+GET http://localhost:8888/admin/products/33/sizes HTTP/1.1
+content-type: application/json
 
 ###
 GET http://localhost:8888/admin/products/1/discounts HTTP/1.1
@@ -75,7 +75,7 @@ content-type: application/application/json
 
 ###
 GET http://localhost:8888/admin/products/1/images HTTP/1.1
-content-type: application/application/json
+content-type: application/json
 
 ###
 GET http://localhost:8888/admin/products/recommended-products HTTP/1.1

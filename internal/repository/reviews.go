@@ -8,13 +8,15 @@ import (
 	"koda-b6-backend/internal/models"
 
 	"github.com/jackc/pgx/v5"
+	//"github.com/jackc/pgx/v5"
+	"github.com/jackc/pgx/v5/pgxpool"
 )
 
 type ReviewsRepository struct {
-	db *pgx.Conn
+	db *pgxpool.Pool
 }
 
-func NewReviewsRepository(db *pgx.Conn) *ReviewsRepository {
+func NewReviewsRepository(db *pgxpool.Pool) *ReviewsRepository {
 	return &ReviewsRepository{
 		db: db,
 	}
