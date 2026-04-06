@@ -21,16 +21,91 @@ func NewProductRepository(db *pgx.Conn) *ProductRepository {
 }
 
 func (p *ProductRepository) GetAll(ctx context.Context) ([]models.Product, error) {
-	rows, err := p.db.Query(ctx,
-		`SELECT id, product_name, description, stock, base_price FROM products ORDER BY id DESC`)
+	rows, err := p.db.Query(ctx, `
+		SELECT 
+			pr.id,
+			pr.product_name,
+			pr.description,
+			pr.stock,
+			pr.base_price,
+			pi.id as image_id,
+			pi.product_id,
+			pi.path,
+			pi.is_primary
+		FROM products pr
+		LEFT JOIN product_image pi ON pr.id = pi.product_id
+		ORDER BY pr.id DESC, pi.is_primary DESC
+	`)
 	if err != nil {
 		return nil, fmt.Errorf("failed to query all products: %w", err)
 	}
 	defer rows.Close()
 
-	products, err := pgx.CollectRows(rows, pgx.RowToStructByName[models.Product])
-	if err != nil {
-		return nil, fmt.Errorf("failed to collect products: %w", err)
+	// Map to collect products with their images
+	productMap := make(map[int]*models.Product)
+	productOrder := []int{}
+
+	for rows.Next() {
+		var (
+			id          int
+			productName string
+			description string
+			stock       int
+			basePrice   int
+			imageID     *int
+			productID   *int
+			imagePath   *string
+			isPrimary   *bool
+		)
+
+		err := rows.Scan(
+			&id,
+			&productName,
+			&description,
+			&stock,
+			&basePrice,
+			&imageID,
+			&productID,
+			&imagePath,
+			&isPrimary,
+		)
+		if err != nil {
+			return nil, fmt.Errorf("failed to scan product row: %w", err)
+		}
+
+		// If product not yet in map, create it
+		if _, exists := productMap[id]; !exists {
+			productMap[id] = &models.Product{
+				ID:          id,
+				ProductName: productName,
+				Description: description,
+				Stock:       stock,
+				BasePrice:   basePrice,
+				Images:      []models.ProductImage{},
+			}
+			productOrder = append(productOrder, id)
+		}
+
+		// Add image if it exists
+		if imageID != nil && imagePath != nil {
+			image := models.ProductImage{
+				ID:        *imageID,
+				ProductID: *productID,
+				Path:      *imagePath,
+				IsPrimary: *isPrimary,
+			}
+			productMap[id].Images = append(productMap[id].Images, image)
+		}
+	}
+
+	if err = rows.Err(); err != nil {
+		return nil, fmt.Errorf("error iterating product rows: %w", err)
+	}
+
+	// Convert map back to slice in original order
+	products := make([]models.Product, len(productOrder))
+	for i, id := range productOrder {
+		products[i] = *productMap[id]
 	}
 
 	return products, nil
