@@ -128,6 +128,7 @@ func (s *OrderService) GetUserOrders(ctx context.Context, customerID int, limit,
 			Total:       order.Subtotal + order.Tax + order.DeliveryFee,
 			Status:      order.Status,
 			CreatedAt:   order.CreatedAt,
+			Items:       order.Items,
 		}
 		responses = append(responses, response)
 	}

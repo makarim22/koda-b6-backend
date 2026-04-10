@@ -19,7 +19,7 @@ POST http://localhost:8888/api/auth/login HTTP/1.1
 content-type: application/application/json
 
 {
-    "email": "urif@gmail.com",
+    "email": "sakura@gmail.com",
     "password": "secret22"
 }
 
@@ -122,3 +122,9 @@ Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjo1MywiZ
 ###
 GET http://localhost:8888/api/products/1/images HTTP/1.1
 content-type: application/application/
+
+###
+GET http://localhost:8888/api/orders HTTP/1.1
+content-type: application/json
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjo1NCwiZW1haWwiOiJzYWt1cmFAZ21haWwuY29tIiwiZXhwIjoxNzc1OTAxMTk3LCJpYXQiOjE3NzU4MTQ3OTd9.Hm6w5iak1tpVhni-T6QmGvXZkDFP33TBHe0XOksnn34
+
