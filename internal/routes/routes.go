@@ -48,6 +48,10 @@ func SetupRoutes(router *gin.Engine, container *di.Container) {
 			products.GET("/:id/sizes", sizeHandler.GetSizeByProductID)
 			products.GET("/:id/discounts", productDiscountHandler.GetDiscountsByProductID)
 			products.GET("/:id/images", productImageHandler.GetImageByID)
+			products.POST("/:id/images", productImageHandler.UploadImage)
+			products.POST("/:id/images/multiple", productImageHandler.UploadMultipleImages)
+			products.PATCH("/:id/images/:imageId/set-primary", productImageHandler.SetPrimaryImage)
+			products.DELETE("/:id/images/:imageId", productImageHandler.DeleteImage)
 		}
 	}
 	{

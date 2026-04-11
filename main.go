@@ -89,6 +89,8 @@ func main() {
 
 	router.Use(corsMiddleware())
 
+	router.Static("/uploads", "./uploads")
+
 	router.GET("/", func(c *gin.Context) {
 		c.JSON(http.StatusOK, gin.H{
 			"status":  "ok",
