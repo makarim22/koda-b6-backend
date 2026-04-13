@@ -43,3 +43,11 @@ func (r *VariantRepository) GetVariantsByProductID(ctx context.Context, productI
 	}
 	return variants, nil
 }
+
+func (r *VariantRepository) CreateVariant (ctx context.Context, req *models.Variant) error {
+    err := r.db.QueryRow(ctx, `insert into variants (name, additional_price) values ($1, $2) returding id`, req.Name, req.AdditionalPrice).Scan(&req.ID)
+	if err != nil {
+     return fmt.Errorf("failed to create variant: %w", err)
+	}
+	return nil
+}

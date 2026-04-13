@@ -56,3 +56,27 @@ func (h *VariantHandler) GetVariantsByProductID(c *gin.Context) {
 		"data": variants,
 	})
 }
+
+func (h *VariantHandler) CreateVariant(c *gin.Context){
+	var variant models.Variant
+
+	if err := c.ShouldBindJSON(&variant); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": "Invalid request body",
+		})
+		return
+	}
+
+    err := h.service.CreateVariant(c.Request.Context(), &variant)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error": err.Error(),
+		})
+		return
+	}
+
+	c.JSON(http.StatusCreated, gin.H{
+		"message": "Product created successfully",
+		"data":    variant,
+	})
+}

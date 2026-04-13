@@ -27,3 +27,11 @@ func (s *SizeService) GetSizeByProductID(ctx context.Context, productID int) ([]
 	}
 	return sizes, nil
 }
+
+func (s *SizeService) CreateSize (ctx context.Context, size *models.Size) error {
+    err := s.repo.CreateSize(ctx, size)
+	if err != nil {
+		return fmt.Errorf("cannot create size: %w", err)
+	}
+	return nil
+}

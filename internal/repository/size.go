@@ -55,3 +55,12 @@ func (r *SizeRepository) GetSizesByProductID(ctx context.Context, productID int)
 
 	return sizes, nil
 }
+
+
+func (r *SizeRepository) CreateSize(ctx context.Context, req *models.Size) error {
+    err := r.db.QueryRow(ctx, `insert into sizes (name, additional_price) values ($1, $2) returning id`, req.Name, req.AdditionalPrice).Scan(&req.ID)
+	if err != nil {
+     return fmt.Errorf("failed to create sizes: %w", err)
+	}
+	return nil
+}

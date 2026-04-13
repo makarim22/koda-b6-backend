@@ -27,3 +27,11 @@ func (s *VariantService) GetVariantsByProductID(ctx context.Context, productID i
 	}
 	return variants, nil
 }
+
+func (s *VariantService) CreateVariant (ctx context.Context, variant *models.Variant) error {
+    err := s.variantRepo.CreateVariant(ctx, variant)
+	if err != nil {
+		return fmt.Errorf("cannot create variant: %w", err)
+	}
+	return nil
+}

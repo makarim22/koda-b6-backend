@@ -55,3 +55,28 @@ func (h *SizeHandler) GetSizeByProductID(c *gin.Context) {
 		"data": sizes,
 	})
 }
+
+
+func (h *SizeHandler) CreateSize(c *gin.Context){
+	var size models.Size
+
+	if err := c.ShouldBindJSON(&size); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": "Invalid request body",
+		})
+		return
+	}
+
+    err := h.service.CreateSize(c.Request.Context(), &size)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error": err.Error(),
+		})
+		return
+	}
+
+	c.JSON(http.StatusCreated, gin.H{
+		"message": "Product created successfully",
+		"data":    size,
+	})
+}

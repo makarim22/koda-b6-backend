@@ -118,4 +118,14 @@ func SetupRoutes(router *gin.Engine, container *di.Container) {
 		payments.DELETE("/:id", paymentHandler.Delete)
 	}
 
+	variants := api.Group("/variants")
+	{
+		variants.POST("", variantHandler.CreateVariant)
+	}
+
+	sizes := api.Group("/sizes")
+	{
+		sizes.POST("", sizeHandler.CreateSize)
+	}
+
 }
