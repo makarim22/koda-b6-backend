@@ -121,6 +121,7 @@ func SetupRoutes(router *gin.Engine, container *di.Container) {
 	variants := api.Group("/variants")
 	{
 		variants.POST("", variantHandler.CreateVariant)
+		variants.GET("", variantHandler.GetAllVariants)
 	}
 
 	sizes := api.Group("/sizes")

@@ -80,3 +80,19 @@ func (h *VariantHandler) CreateVariant(c *gin.Context){
 		"data":    variant,
 	})
 }
+func (h *VariantHandler) GetAllVariants(c *gin.Context){
+
+	ctx := c.Request.Context()
+	variants, err := h.service.GetAllVariants(ctx)
+	if err != nil{
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error": err.Error(),
+		})
+		return
+	}
+
+	c.JSON(http.StatusCreated, gin.H{
+		"message": "success retreiving variants",
+		"data":    variants,
+	})
+}

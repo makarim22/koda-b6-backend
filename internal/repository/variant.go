@@ -51,3 +51,32 @@ func (r *VariantRepository) CreateVariant (ctx context.Context, req *models.Vari
 	}
 	return nil
 }
+
+func (r *VariantRepository) GetAll (ctx context.Context) ([]models.Variant, error){
+	 
+     variantsRow, err := r.db.Query(ctx, `select id, name, additional_price from variants`)
+	 if err != nil {
+		return nil, fmt.Errorf("cannot get variants")
+	 }
+	 defer variantsRow.Close()
+
+	 variants := []models.Variant{}
+	 variantIDs := []int{}
+
+	 for variantsRow.Next() {
+		var variant models.Variant
+		err := variantsRow.Scan(
+			&variant.ID,
+			&variant.Name,
+			&variant.AdditionalPrice,
+		
+		)
+		if err != nil {
+			return nil, fmt.Errorf("failed to scan product: %w", err)
+		}
+
+        variants = append(variants, variant)
+		variantIDs = append(variantIDs, variant.ID)
+	}
+	 return variants, nil
+}
