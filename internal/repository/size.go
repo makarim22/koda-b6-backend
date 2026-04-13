@@ -64,3 +64,32 @@ func (r *SizeRepository) CreateSize(ctx context.Context, req *models.Size) error
 	}
 	return nil
 }
+
+func (r *SizeRepository) GetAll (ctx context.Context) ([]models.Size, error){
+	 
+     sizesRow, err := r.db.Query(ctx, `select id, name, additional_price from sizes`)
+	 if err != nil {
+		return nil, fmt.Errorf("cannot get sizes")
+	 }
+	 defer sizesRow.Close()
+
+	 sizes := []models.Size{}
+	 sizeIDs := []int{}
+
+	 for sizesRow.Next() {
+		var size models.Size
+		err := sizesRow.Scan(
+			&size.ID,
+			&size.Name,
+			&size.AdditionalPrice,
+		
+		)
+		if err != nil {
+			return nil, fmt.Errorf("failed to scan product: %w", err)
+		}
+
+        sizes = append(sizes, size)
+		sizeIDs = append(sizeIDs, size.ID)
+	}
+	 return sizes, nil
+}

@@ -39,7 +39,7 @@ func (s *VariantService) CreateVariant (ctx context.Context, variant *models.Var
 func (s * VariantService) GetAllVariants (ctx context.Context) ([]models.Variant, error){
 	variants, err := s.variantRepo.GetAll(ctx)
 	if err != nil {
-		return nil, fmt.Errorf("cannot create variant: %w", err)
+		return nil, fmt.Errorf("cannot retreive variant: %w", err)
 	}
 	return variants, nil
 }

@@ -80,3 +80,20 @@ func (h *SizeHandler) CreateSize(c *gin.Context){
 		"data":    size,
 	})
 }
+
+func (h *SizeHandler) GetAllSizes(c *gin.Context){
+
+	ctx := c.Request.Context()
+	sizes, err := h.service.GetAllSizes(ctx)
+	if err != nil{
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error": err.Error(),
+		})
+		return
+	}
+
+	c.JSON(http.StatusCreated, gin.H{
+		"message": "success retreiving sizes",
+		"data":    sizes,
+	})
+}

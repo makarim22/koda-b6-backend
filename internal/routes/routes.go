@@ -127,6 +127,7 @@ func SetupRoutes(router *gin.Engine, container *di.Container) {
 	sizes := api.Group("/sizes")
 	{
 		sizes.POST("", sizeHandler.CreateSize)
+		sizes.GET("", sizeHandler.GetAllSizes)
 	}
 
 }
