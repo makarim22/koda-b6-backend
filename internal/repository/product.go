@@ -218,7 +218,15 @@ func (p *ProductRepository) GetByID(ctx context.Context, id int) (*models.Produc
 }
 
 func (p *ProductRepository) Create(ctx context.Context, product *models.Product) error {
-	err := p.db.QueryRow(ctx,
+	// Start a transaction
+	tx, err := p.db.Begin(ctx)
+	if err != nil {
+		return fmt.Errorf("failed to begin transaction: %w", err)
+	}
+	defer tx.Rollback(ctx)
+
+	// query 1
+	err = tx.QueryRow(ctx,
 		`INSERT INTO products (product_name, description, stock, base_price)
 		 VALUES ($1, $2, $3, $4)
 		 RETURNING id`,
@@ -227,6 +235,40 @@ func (p *ProductRepository) Create(ctx context.Context, product *models.Product)
 
 	if err != nil {
 		return fmt.Errorf("failed to create product: %w", err)
+	}
+
+	// query 2
+	if len(product.Variants) > 0 {
+		for _, variant := range product.Variants {
+			_, err := tx.Exec(ctx,
+				`INSERT INTO product_variant (product_id, variant_id)
+				 VALUES ($1, $2)`,
+				product.ID, variant.ID)
+			
+			if err != nil {
+				return fmt.Errorf("failed to create product variant: %w", err)
+			}
+		}
+	}
+
+	// query 3
+	if len(product.Sizes) > 0 {
+		for _, size := range product.Sizes {
+			_, err := tx.Exec(ctx,
+				`INSERT INTO product_sizes (product_id, size_id)
+				 VALUES ($1, $2)`,
+				product.ID, size.ID)
+			
+			if err != nil {
+				return fmt.Errorf("failed to create product size: %w", err)
+			}
+		}
+	}
+
+	// Commit transaction
+	err = tx.Commit(ctx)
+	if err != nil {
+		return fmt.Errorf("failed to commit transaction: %w", err)
 	}
 
 	return nil

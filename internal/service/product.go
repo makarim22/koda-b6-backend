@@ -59,6 +59,8 @@ func (p *ProductService) CreateProduct(ctx context.Context, product *models.Prod
 	return nil
 }
 
+
+
 func (p *ProductService) UpdateProduct(ctx context.Context, product *models.Product) error {
 
 	if product.ID == 0 {
