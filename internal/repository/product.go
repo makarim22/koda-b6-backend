@@ -23,91 +23,178 @@ func NewProductRepository(db *pgxpool.Pool) *ProductRepository {
 }
 
 func (p *ProductRepository) GetAll(ctx context.Context) ([]models.Product, error) {
-	rows, err := p.db.Query(ctx, `
+	// Query 1: Get all products
+	productRows, err := p.db.Query(ctx, `
 		SELECT 
-			pr.id,
-			pr.product_name,
-			pr.description,
-			pr.stock,
-			pr.base_price,
-			pi.id as image_id,
-			pi.product_id,
-			pi.path,
-			pi.is_primary
-		FROM products pr
-		LEFT JOIN product_image pi ON pr.id = pi.product_id
-		ORDER BY pr.id DESC, pi.is_primary DESC
+			id,
+			product_name,
+			description,
+			stock,
+			base_price
+		FROM products
+		ORDER BY id DESC
 	`)
 	if err != nil {
-		return nil, fmt.Errorf("failed to query all products: %w", err)
+		return nil, fmt.Errorf("failed to query products: %w", err)
 	}
-	defer rows.Close()
+	defer productRows.Close()
 
-	// Map to collect products with their images
-	productMap := make(map[int]*models.Product)
-	productOrder := []int{}
+	products := []models.Product{}
+	productIDs := []int{}
 
-	for rows.Next() {
-		var (
-			id          int
-			productName string
-			description string
-			stock       int
-			basePrice   int
-			imageID     *int
-			productID   *int
-			imagePath   *string
-			isPrimary   *bool
-		)
-
-		err := rows.Scan(
-			&id,
-			&productName,
-			&description,
-			&stock,
-			&basePrice,
-			&imageID,
-			&productID,
-			&imagePath,
-			&isPrimary,
+	for productRows.Next() {
+		var product models.Product
+		err := productRows.Scan(
+			&product.ID,
+			&product.ProductName,
+			&product.Description,
+			&product.Stock,
+			&product.BasePrice,
 		)
 		if err != nil {
-			return nil, fmt.Errorf("failed to scan product row: %w", err)
+			return nil, fmt.Errorf("failed to scan product: %w", err)
 		}
 
-		// If product not yet in map, create it
-		if _, exists := productMap[id]; !exists {
-			productMap[id] = &models.Product{
-				ID:          id,
-				ProductName: productName,
-				Description: description,
-				Stock:       stock,
-				BasePrice:   basePrice,
-				Images:      []models.ProductImage{},
-			}
-			productOrder = append(productOrder, id)
+		product.Images = []models.ProductImage{}
+		product.Variants = []models.Variant{}
+		product.Sizes = []models.Size{}
+
+		products = append(products, product)
+		productIDs = append(productIDs, product.ID)
+	}
+
+	if err = productRows.Err(); err != nil {
+		return nil, fmt.Errorf("error iterating products: %w", err)
+	}
+
+	if len(products) == 0 {
+		return products, nil
+	}
+
+	// Query 2: Get all images for these products
+	imageRows, err := p.db.Query(ctx, `
+		SELECT 
+			id,
+			product_id,
+			path,
+			is_primary
+		FROM product_image
+		WHERE product_id = ANY($1)
+		ORDER BY product_id, is_primary DESC
+	`, productIDs)
+	if err != nil {
+		return nil, fmt.Errorf("failed to query product images: %w", err)
+	}
+	defer imageRows.Close()
+
+	// Create a map for quick product lookup
+	productMap := make(map[int]*models.Product)
+	for i := range products {
+		productMap[products[i].ID] = &products[i]
+	}
+
+	for imageRows.Next() {
+		var (
+			id        int
+			productID int
+			path      string
+			isPrimary bool
+		)
+		err := imageRows.Scan(&id, &productID, &path, &isPrimary)
+		if err != nil {
+			return nil, fmt.Errorf("failed to scan image: %w", err)
 		}
 
-		// Add image if it exists
-		if imageID != nil && imagePath != nil {
-			image := models.ProductImage{
-				ID:        *imageID,
-				ProductID: *productID,
-				Path:      *imagePath,
-				IsPrimary: *isPrimary,
-			}
-			productMap[id].Images = append(productMap[id].Images, image)
+		if product, exists := productMap[productID]; exists {
+			product.Images = append(product.Images, models.ProductImage{
+				ID:        id,
+				ProductID: productID,
+				Path:      path,
+				IsPrimary: isPrimary,
+			})
 		}
 	}
 
-	if err = rows.Err(); err != nil {
-		return nil, fmt.Errorf("error iterating product rows: %w", err)
+	if err = imageRows.Err(); err != nil {
+		return nil, fmt.Errorf("error iterating images: %w", err)
 	}
 
-	// Convert map back to slice in original order
-	products := make([]models.Product, len(productOrder))
-	for i, id := range productOrder {
-		products[i] = *productMap[id]
+	// Query 3: Get all variants for these products
+	variantRows, err := p.db.Query(ctx, `
+		SELECT DISTINCT
+			pv.variant_id,
+			v.name,
+			pv.product_id
+		FROM product_variant pv
+		JOIN variants v ON pv.variant_id = v.id
+		WHERE pv.product_id = ANY($1)
+		ORDER BY pv.product_id
+	`, productIDs)
+	if err != nil {
+		return nil, fmt.Errorf("failed to query variants: %w", err)
+	}
+	defer variantRows.Close()
+
+	for variantRows.Next() {
+		var (
+			variantID int
+			name      string
+			productID int
+		)
+		err := variantRows.Scan(&variantID, &name, &productID)
+		if err != nil {
+			return nil, fmt.Errorf("failed to scan variant: %w", err)
+		}
+
+		if product, exists := productMap[productID]; exists {
+			product.Variants = append(product.Variants, models.Variant{
+				ID:   variantID,
+				Name: name,
+			})
+		}
+	}
+
+	if err = variantRows.Err(); err != nil {
+		return nil, fmt.Errorf("error iterating variants: %w", err)
+	}
+
+	// Query 4: Get all sizes for these products
+	sizeRows, err := p.db.Query(ctx, `
+		SELECT DISTINCT
+			ps.size_id,
+			s.name,
+			ps.product_id
+		FROM product_sizes ps
+		JOIN sizes s ON ps.size_id = s.id
+		WHERE ps.product_id = ANY($1)
+		ORDER BY ps.product_id
+	`, productIDs)
+	if err != nil {
+		return nil, fmt.Errorf("failed to query sizes: %w", err)
+	}
+	defer sizeRows.Close()
+
+	for sizeRows.Next() {
+		var (
+			sizeID    int
+			name      string
+			productID int
+		)
+		err := sizeRows.Scan(&sizeID, &name, &productID)
+		if err != nil {
+			return nil, fmt.Errorf("failed to scan size: %w", err)
+		}
+
+		if product, exists := productMap[productID]; exists {
+			product.Sizes = append(product.Sizes, models.Size{
+				ID:   sizeID,
+				Name: name,
+			})
+		}
+	}
+
+	if err = sizeRows.Err(); err != nil {
+		return nil, fmt.Errorf("error iterating sizes: %w", err)
 	}
 
 	return products, nil
@@ -362,6 +449,7 @@ func (r *OrderRepository) GetOrderDetails(ctx context.Context, orderID int) ([]m
 func (p *ProductRepository) GetProductsWithSalesMetrics(ctx context.Context) ([]models.ProductSalesMetrics, error) {
 	rows, err := p.db.Query(ctx, `
 		SELECT 
+		    pr.id,
 			pr.product_name,
 			COALESCE(SUM(pr.base_price * oi.quantity), 0) as revenue,
 			COALESCE(SUM(oi.quantity), 0) as total_quantity
@@ -379,12 +467,14 @@ func (p *ProductRepository) GetProductsWithSalesMetrics(ctx context.Context) ([]
 
 	for rows.Next() {
 		var (
+			productId   int64
 			productName string
 			revenue     int64
 			quantity    int64
 		)
 
 		err := rows.Scan(
+			&productId,
 			&productName,
 			&revenue,
 			&quantity,
@@ -394,6 +484,7 @@ func (p *ProductRepository) GetProductsWithSalesMetrics(ctx context.Context) ([]
 		}
 
 		result = append(result, models.ProductSalesMetrics{
+			ProductId  : productId,
 			ProductName: productName,
 			Revenue:     revenue,
 			Quantity:    quantity,

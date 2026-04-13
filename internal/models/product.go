@@ -7,8 +7,8 @@ type Product struct {
 	BasePrice   int            `json:"base_price" db:"base_price"`
 	Stock       int            `json:"stock" db:"stock"`
 	Images      []ProductImage `json:"images" db:"-"`
-	// VariantId int `json:"variant_id"`
-	// SizeId int `json:"size_id"`
+	Variants    []Variant        `json:"variants" db:"-"`
+	Sizes       []Size           `json:"sizes" db:"-"`
 }
 
 type ProductDetail struct {
@@ -59,6 +59,7 @@ var products = map[int]Product{}
 var nextProductId = 1
 
 type ProductSalesMetrics struct {
+	ProductId   int64 `json:"product_id"`
 	ProductName string `json:"product_name"`
 	Quantity int64 `json:"quantity"`
 	Revenue int64 `json:"revenue"`
