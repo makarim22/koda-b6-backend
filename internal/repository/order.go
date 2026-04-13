@@ -261,3 +261,36 @@ func (r *OrderRepository) GetUserOrders(ctx context.Context, customerID int, lim
 }
 
 
+func (r *OrderRepository) GetDailySalesData(ctx context.Context) ([]models.DailySalesData, error) {
+	query := `
+		SELECT 
+			DATE(created_at) as sales_date,
+			SUM(quantity) as total_products_sold
+		FROM order_items
+		GROUP BY DATE(created_at)
+		ORDER BY sales_date DESC
+	`
+
+	rows, err := r.db.Query(ctx, query)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var salesData []models.DailySalesData
+
+	for rows.Next() {
+		var data models.DailySalesData
+		err := rows.Scan(&data.SalesDate, &data.TotalProductsSold)
+		if err != nil {
+			return nil, err
+		}
+		salesData = append(salesData, data)
+	}
+
+	if err = rows.Err(); err != nil {
+		return nil, err
+	}
+
+	return salesData, nil
+}

@@ -237,3 +237,22 @@ func (h *OrderHandler) DeleteOrder(c *gin.Context) {
 		Message: "Order deleted successfully",
 	})
 }
+
+func (h *OrderHandler) GetDailySales(c *gin.Context) {
+	ctx := c.Request.Context()
+
+	result, err := h.orderService.GetDailySales(ctx)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, models.ApiResponse{
+			Success: false,
+			Message: err.Error(),
+		})
+		return
+	}
+
+	c.JSON(http.StatusOK, models.ApiResponse{
+		Success: true,
+		Message: "Daily sales data retrieved successfully",
+		Data:    result,
+	})
+}

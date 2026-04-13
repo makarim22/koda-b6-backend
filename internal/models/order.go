@@ -75,7 +75,14 @@ type UpdateOrderDetailRequest struct {
 	UnitPrice float64 `json:"unit_price" binding:"required,min=0"`
 }
 
+// type DailySalesData struct {
+// 	SalesDate           string `json:"sales_date"`
+// 	TotalProductsSold   int    `json:"total_products_sold"`
+// }
 
 
-
+type DailySalesData struct {
+    SalesDate           time.Time `db:"sales_date" json:"sales_date"`
+    TotalProductsSold   int64     `db:"total_products_sold" json:"total_products_sold"`
+}
 

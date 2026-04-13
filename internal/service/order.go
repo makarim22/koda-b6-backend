@@ -187,3 +187,13 @@ func (s *OrderService) DeleteOrder(ctx context.Context, orderID int, customerID 
 
 	return s.orderRepo.DeleteOrder(ctx, orderID)
 }
+
+
+
+func (s *OrderService) GetDailySales(ctx context.Context) ([]models.DailySalesData, error) {
+    result, err := s.orderRepo.GetDailySalesData(ctx)
+    if err != nil {
+        return nil, fmt.Errorf("cannot retrieve daily sales data: %w", err)  // fixed typo + better message
+    }
+    return result, nil
+}

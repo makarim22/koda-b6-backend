@@ -130,4 +130,10 @@ func SetupRoutes(router *gin.Engine, container *di.Container) {
 		sizes.GET("", sizeHandler.GetAllSizes)
 	}
 
+	public := router.Group("/public")
+	{
+      public.GET("/daily-sales", orderHandler.GetDailySales)
+	}
+	
+
 }
