@@ -42,6 +42,7 @@ func SetupRoutes(router *gin.Engine, container *di.Container) {
 			products.GET("", productHandler.GetAllProducts)
 			products.GET("/:id", productHandler.GetById)
 			products.GET("/recommended-products", productHandler.MostReviewedProduct)
+			products.GET("/top-products", productHandler.MostSellingProduct)
 			products.POST("", productHandler.CreateProduct)
 			products.PUT("/:id", productHandler.UpdateProduct)
 			products.GET("/:id/variants", variantHandler.GetVariantsByProductID)

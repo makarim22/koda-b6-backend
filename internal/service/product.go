@@ -118,3 +118,12 @@ func (p *ProductService) UpdateStock(ctx context.Context, id, quantity int) erro
 	}
 	return nil
 }
+ 
+func (p *ProductService) GetTopRevenue(ctx context.Context) ([]models.ProductSalesMetrics, error){
+	result, err := p.productRepo.GetProductsWithSalesMetrics(ctx)
+	if err != nil {
+		return nil, errors.New("gagal mengambil product")
+	}
+
+	return result, nil
+}

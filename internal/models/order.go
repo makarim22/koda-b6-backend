@@ -74,3 +74,8 @@ type UpdateOrderDetailRequest struct {
 	Quantity  int     `json:"quantity" binding:"required,min=1"`
 	UnitPrice float64 `json:"unit_price" binding:"required,min=0"`
 }
+
+
+
+
+

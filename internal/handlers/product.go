@@ -145,8 +145,24 @@ func (h *ProductHandler) MostReviewedProduct(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, gin.H{
+		"message": "Berhasil mengambil top products",
+		"data":    products,
+	})
+
+}
+
+func (h *ProductHandler) MostSellingProduct(c *gin.Context){
+ products, err := h.productService.GetTopRevenue(c.Request.Context())
+ if err != nil {
+	c.JSON(http.StatusInternalServerError, gin.H{
+		"error": err.Error(),
+	})
+ }
+
+ 	c.JSON(http.StatusOK, gin.H{
 		"message": "Berhasil mengambil products",
 		"data":    products,
 	})
 
+ 
 }

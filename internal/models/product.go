@@ -57,3 +57,9 @@ type ProductDiscount struct {
 var products = map[int]Product{}
 
 var nextProductId = 1
+
+type ProductSalesMetrics struct {
+	ProductName string `json:"product_name"`
+	Quantity int64 `json:"quantity"`
+	Revenue int64 `json:"revenue"`
+}

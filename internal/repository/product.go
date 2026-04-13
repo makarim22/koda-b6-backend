@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"log"
 
 	"koda-b6-backend/internal/models"
 
@@ -291,4 +292,217 @@ func (p *ProductRepository) MostReviewWithPrimaryImage(ctx context.Context) (*[]
 	}
 
 	return &products, nil
+}
+
+func (r *OrderRepository) GetOrderDetails(ctx context.Context, orderID int) ([]models.OrderDetailResponse, error) {
+	log.Printf("[GetOrderDetails] Starting query for orderID: %d", orderID)
+
+	query := `
+		SELECT 
+			oi.id,
+			oi.product_id,
+			p.product_name,
+			oi.quantity,
+			p.base_price,
+			oi.size_id,
+			s.name as size_name,
+			oi.variant_id,
+			v.name as variant_name
+		FROM order_items oi
+		JOIN products p ON oi.product_id = p.id
+		LEFT JOIN sizes s ON oi.size_id = s.id
+		LEFT JOIN variants v ON oi.variant_id = v.id
+		WHERE oi.order_id = $1
+	`
+
+	rows, err := r.db.Query(ctx, query, orderID)
+	if err != nil {
+		log.Printf("[GetOrderDetails] Query failed for orderID %d: %v", orderID, err)
+		return nil, fmt.Errorf("failed to get order details: %w", err)
+	}
+	defer rows.Close()
+
+	log.Printf("[GetOrderDetails] Query executed successfully for orderID: %d", orderID)
+
+	var details []models.OrderDetailResponse
+	rowCount := 0
+	for rows.Next() {
+		rowCount++
+		var detail models.OrderDetailResponse
+		err := rows.Scan(
+			&detail.ID,
+			&detail.ProductID,
+			&detail.ProductName,
+			&detail.Quantity,
+			&detail.Price,
+			&detail.SizeID,
+			&detail.SizeName,
+			&detail.VariantID,
+			&detail.VariantName,
+		)
+		if err != nil {
+			log.Printf("[GetOrderDetails] Scan error on row %d for orderID %d: %v", rowCount, orderID, err)
+			return nil, fmt.Errorf("failed to scan order detail: %w", err)
+		}
+		log.Printf("[GetOrderDetails] Row %d scanned - ProductID: %d, ProductName: %s, Quantity: %d",
+			rowCount, detail.ProductID, detail.ProductName, detail.Quantity)
+		details = append(details, detail)
+	}
+
+	if err = rows.Err(); err != nil {
+		log.Printf("[GetOrderDetails] Iterator error for orderID %d: %v", orderID, err)
+		return nil, fmt.Errorf("error iterating order details: %w", err)
+	}
+
+	log.Printf("[GetOrderDetails] Completed for orderID: %d - Total rows scanned: %d", orderID, rowCount)
+
+	return details, nil
+}
+
+func (p *ProductRepository) GetProductsWithSalesMetrics(ctx context.Context) ([]models.ProductSalesMetrics, error) {
+	rows, err := p.db.Query(ctx, `
+		SELECT 
+			pr.product_name,
+			COALESCE(SUM(pr.base_price * oi.quantity), 0) as revenue,
+			COALESCE(SUM(oi.quantity), 0) as total_quantity
+		FROM products pr
+		LEFT JOIN order_items oi ON pr.id = oi.product_id
+		GROUP BY pr.id, pr.product_name
+		ORDER BY revenue DESC
+	`)
+	if err != nil {
+		return nil, fmt.Errorf("failed to query products with sales metrics: %w", err)
+	}
+	defer rows.Close()
+
+	var result []models.ProductSalesMetrics
+
+	for rows.Next() {
+		var (
+			productName string
+			revenue     int64
+			quantity    int64
+		)
+
+		err := rows.Scan(
+			&productName,
+			&revenue,
+			&quantity,
+		)
+		if err != nil {
+			return nil, fmt.Errorf("failed to scan row: %w", err)
+		}
+
+		result = append(result, models.ProductSalesMetrics{
+			ProductName: productName,
+			Revenue:     revenue,
+			Quantity:    quantity,
+		})
+	}
+
+	if err = rows.Err(); err != nil {
+		return nil, fmt.Errorf("error iterating rows: %w", err)
+	}
+
+	return result, nil
+}
+
+
+func (p *ProductRepository) GetTopProductsByRevenue(ctx context.Context, limit int) ([]models.ProductSalesMetrics, error) {
+	rows, err := p.db.Query(ctx, `
+		SELECT 
+			pr.product_name,
+			COALESCE(SUM(pr.base_price * oi.quantity), 0) as revenue,
+			COALESCE(SUM(oi.quantity), 0) as total_quantity
+		FROM products pr
+		LEFT JOIN order_items oi ON pr.id = oi.product_id
+		GROUP BY pr.id, pr.product_name
+		ORDER BY revenue DESC
+		LIMIT $1
+	`, limit)
+	if err != nil {
+		return nil, fmt.Errorf("failed to query top products by revenue: %w", err)
+	}
+	defer rows.Close()
+
+	var result []models.ProductSalesMetrics
+
+	for rows.Next() {
+		var (
+			productName string
+			revenue     int64
+			quantity    int64
+		)
+
+		err := rows.Scan(
+			&productName,
+			&revenue,
+			&quantity,
+		)
+		if err != nil {
+			return nil, fmt.Errorf("failed to scan row: %w", err)
+		}
+
+		result = append(result, models.ProductSalesMetrics{
+			ProductName: productName,
+			Revenue:     revenue,
+			Quantity:    quantity,
+		})
+	}
+
+	if err = rows.Err(); err != nil {
+		return nil, fmt.Errorf("error iterating rows: %w", err)
+	}
+
+	return result, nil
+}
+
+
+func (p *ProductRepository) GetTopProductsByQuantity(ctx context.Context, limit int) ([]models.ProductSalesMetrics, error) {
+	rows, err := p.db.Query(ctx, `
+		SELECT 
+			pr.product_name,
+			COALESCE(SUM(pr.base_price * oi.quantity), 0) as revenue,
+			COALESCE(SUM(oi.quantity), 0) as total_quantity
+		FROM products pr
+		LEFT JOIN order_items oi ON pr.id = oi.product_id
+		GROUP BY pr.id, pr.product_name
+		ORDER BY total_quantity DESC
+		LIMIT $1
+	`, limit)
+	if err != nil {
+		return nil, fmt.Errorf("failed to query top products by quantity: %w", err)
+	}
+	defer rows.Close()
+
+	var result []models.ProductSalesMetrics
+
+	for rows.Next() {
+		var (
+			productName string
+			revenue     int64
+			quantity    int64
+		)
+
+		err := rows.Scan(
+			&productName,
+			&revenue,
+			&quantity,
+		)
+		if err != nil {
+			return nil, fmt.Errorf("failed to scan row: %w", err)
+		}
+
+		result = append(result, models.ProductSalesMetrics{
+			ProductName: productName,
+			Revenue:     revenue,
+			Quantity:    quantity,
+		})
+	}
+
+	if err = rows.Err(); err != nil {
+		return nil, fmt.Errorf("error iterating rows: %w", err)
+	}
+
+	return result, nil
 }
