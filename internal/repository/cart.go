@@ -53,6 +53,63 @@ func (r *CartRepository) AddToCart(ctx context.Context, cart *models.Cart) error
 	}
 }
 
+// func (r *CartRepository) GetCartItems(ctx context.Context, customerID int) ([]models.CartItem, error) {
+// 	query := `
+// 		SELECT 
+// 			c.id,
+// 			c.product_id,
+// 			p.product_name,
+// 			p.base_price,
+// 			c.quantity,
+// 			c.size_id,
+// 			s.name as size_name,
+// 			c.variant_id,
+// 			v.name as variant_name,
+// 			c.created_at
+// 		FROM cart c
+// 		JOIN products p ON c.product_id = p.id
+// 		LEFT JOIN sizes s ON c.size_id = s.id
+// 		LEFT JOIN variants v ON c.variant_id = v.id
+// 		WHERE c.customer_id = $1
+// 		ORDER BY c.created_at DESC
+// 	`
+
+// 	rows, err := r.db.Query(ctx, query, customerID)
+// 	if err != nil {
+// 		return nil, fmt.Errorf("failed to get cart items: %w", err)
+// 	}
+// 	defer rows.Close()
+
+// 	var items []models.CartItem
+// 	for rows.Next() {
+// 		var item models.CartItem
+// 		err := rows.Scan(
+// 			&item.ID,
+// 			&item.ProductID,
+// 			&item.ProductName,
+// 			&item.Price,
+// 			&item.Quantity,
+// 			&item.SizeID,
+// 			&item.SizeName,
+// 			&item.VariantID,
+// 			&item.VariantName,
+// 			&item.CreatedAt,
+// 		)
+// 		if err != nil {
+// 			return nil, fmt.Errorf("failed to scan cart item: %w", err)
+// 		}
+
+// 		item.Subtotal = item.Price * float64(item.Quantity)
+// 		items = append(items, item)
+// 	}
+
+// 	if err = rows.Err(); err != nil {
+// 		return nil, fmt.Errorf("error iterating cart items: %w", err)
+// 	}
+
+// 	return items, nil
+// }
+
 func (r *CartRepository) GetCartItems(ctx context.Context, customerID int) ([]models.CartItem, error) {
 	query := `
 		SELECT 
@@ -65,11 +122,17 @@ func (r *CartRepository) GetCartItems(ctx context.Context, customerID int) ([]mo
 			s.name as size_name,
 			c.variant_id,
 			v.name as variant_name,
+			COALESCE(pi_primary.path, pi_any.path) as image,
 			c.created_at
 		FROM cart c
 		JOIN products p ON c.product_id = p.id
 		LEFT JOIN sizes s ON c.size_id = s.id
 		LEFT JOIN variants v ON c.variant_id = v.id
+		LEFT JOIN product_image pi_primary ON p.id = pi_primary.product_id AND pi_primary.is_primary = true
+		LEFT JOIN (
+			SELECT product_id, path, ROW_NUMBER() OVER (PARTITION BY product_id ORDER BY id) as rn
+			FROM product_image
+		) pi_any ON p.id = pi_any.product_id AND pi_any.rn = 1
 		WHERE c.customer_id = $1
 		ORDER BY c.created_at DESC
 	`
@@ -93,6 +156,7 @@ func (r *CartRepository) GetCartItems(ctx context.Context, customerID int) ([]mo
 			&item.SizeName,
 			&item.VariantID,
 			&item.VariantName,
+			&item.Image,
 			&item.CreatedAt,
 		)
 		if err != nil {
