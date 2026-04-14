@@ -423,6 +423,72 @@ func (p *ProductRepository) MostReviewWithPrimaryImage(ctx context.Context) (*[]
 	return &products, nil
 }
 
+// func (r *OrderRepository) GetOrderDetails(ctx context.Context, orderID int) ([]models.OrderDetailResponse, error) {
+// 	log.Printf("[GetOrderDetails] Starting query for orderID: %d", orderID)
+
+// 	query := `
+// 		SELECT 
+// 			oi.id,
+// 			oi.product_id,
+// 			p.product_name,
+// 			oi.quantity,
+// 			p.base_price,
+// 			oi.size_id,
+// 			s.name as size_name,
+// 			oi.variant_id,
+// 			v.name as variant_name
+// 		FROM order_items oi
+// 		JOIN products p ON oi.product_id = p.id
+// 		LEFT JOIN sizes s ON oi.size_id = s.id
+// 		LEFT JOIN variants v ON oi.variant_id = v.id
+// 		WHERE oi.order_id = $1
+// 	`
+
+// 	rows, err := r.db.Query(ctx, query, orderID)
+// 	if err != nil {
+// 		log.Printf("[GetOrderDetails] Query failed for orderID %d: %v", orderID, err)
+// 		return nil, fmt.Errorf("failed to get order details: %w", err)
+// 	}
+// 	defer rows.Close()
+
+// 	log.Printf("[GetOrderDetails] Query executed successfully for orderID: %d", orderID)
+
+// 	var details []models.OrderDetailResponse
+// 	rowCount := 0
+// 	for rows.Next() {
+// 		rowCount++
+// 		var detail models.OrderDetailResponse
+// 		err := rows.Scan(
+// 			&detail.ID,
+// 			&detail.ProductID,
+// 			&detail.ProductName,
+// 			&detail.Quantity,
+// 			&detail.Price,
+// 			&detail.SizeID,
+// 			&detail.SizeName,
+// 			&detail.VariantID,
+// 			&detail.VariantName,
+// 		)
+// 		if err != nil {
+// 			log.Printf("[GetOrderDetails] Scan error on row %d for orderID %d: %v", rowCount, orderID, err)
+// 			return nil, fmt.Errorf("failed to scan order detail: %w", err)
+// 		}
+// 		log.Printf("[GetOrderDetails] Row %d scanned - ProductID: %d, ProductName: %s, Quantity: %d",
+// 			rowCount, detail.ProductID, detail.ProductName, detail.Quantity)
+// 		details = append(details, detail)
+// 	}
+
+// 	if err = rows.Err(); err != nil {
+// 		log.Printf("[GetOrderDetails] Iterator error for orderID %d: %v", orderID, err)
+// 		return nil, fmt.Errorf("error iterating order details: %w", err)
+// 	}
+
+// 	log.Printf("[GetOrderDetails] Completed for orderID: %d - Total rows scanned: %d", orderID, rowCount)
+
+// 	return details, nil
+// }
+
+
 func (r *OrderRepository) GetOrderDetails(ctx context.Context, orderID int) ([]models.OrderDetailResponse, error) {
 	log.Printf("[GetOrderDetails] Starting query for orderID: %d", orderID)
 
@@ -436,7 +502,11 @@ func (r *OrderRepository) GetOrderDetails(ctx context.Context, orderID int) ([]m
 			oi.size_id,
 			s.name as size_name,
 			oi.variant_id,
-			v.name as variant_name
+			v.name as variant_name,
+			COALESCE(
+				(SELECT path FROM product_image WHERE product_id = p.id AND is_primary = true LIMIT 1),
+				(SELECT path FROM product_image WHERE product_id = p.id ORDER BY id LIMIT 1)
+			) as image
 		FROM order_items oi
 		JOIN products p ON oi.product_id = p.id
 		LEFT JOIN sizes s ON oi.size_id = s.id
@@ -468,13 +538,14 @@ func (r *OrderRepository) GetOrderDetails(ctx context.Context, orderID int) ([]m
 			&detail.SizeName,
 			&detail.VariantID,
 			&detail.VariantName,
+			&detail.Image,
 		)
 		if err != nil {
 			log.Printf("[GetOrderDetails] Scan error on row %d for orderID %d: %v", rowCount, orderID, err)
 			return nil, fmt.Errorf("failed to scan order detail: %w", err)
 		}
-		log.Printf("[GetOrderDetails] Row %d scanned - ProductID: %d, ProductName: %s, Quantity: %d",
-			rowCount, detail.ProductID, detail.ProductName, detail.Quantity)
+		log.Printf("[GetOrderDetails] Row %d scanned - ProductID: %d, ProductName: %s, Quantity: %d, Image: %v",
+			rowCount, detail.ProductID, detail.ProductName, detail.Quantity, detail.Image)
 		details = append(details, detail)
 	}
 
@@ -487,6 +558,7 @@ func (r *OrderRepository) GetOrderDetails(ctx context.Context, orderID int) ([]m
 
 	return details, nil
 }
+
 
 func (p *ProductRepository) GetProductsWithSalesMetrics(ctx context.Context) ([]models.ProductSalesMetrics, error) {
 	rows, err := p.db.Query(ctx, `

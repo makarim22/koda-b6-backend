@@ -55,6 +55,7 @@ type OrderDetailResponse struct {
 	SizeName    string  `json:"size_name,omitempty"`
 	VariantID   *int    `json:"variant_id,omitempty"`
 	VariantName string  `json:"variant_name,omitempty"`
+	Image       *string   `json:"image,omitempty"`
 }
 
 type UpdateOrderStatusRequest struct {
