@@ -31,10 +31,21 @@ func (h *AuthHandler) Register(c *gin.Context) {
 		return
 	}
 
+
+	if req.Role == "" {
+		req.Role = "user" 
+	}
+	if req.Role != "user" && req.Role != "admin" {
+		c.JSON(http.StatusBadRequest, models.ApiResponse{
+			Success: false,
+			Message: "Invalid role. Must be 'user' or 'admin'",
+		})
+		return
+	}
+
 	ctx := c.Request.Context()
 
-	// Call service to register user
-	user, err := h.userService.CreateUserNew(ctx, &req)
+	user, err := h.authService.RegisterWithRole(ctx, req.Email, req.Password, req.Role)
 	if err != nil {
 		c.JSON(http.StatusConflict, models.ApiResponse{
 			Success: false,
@@ -49,6 +60,7 @@ func (h *AuthHandler) Register(c *gin.Context) {
 		Data: models.UserResponse{
 			ID:    user.ID,
 			Email: user.Email,
+			Role:  user.Role,
 		},
 	})
 }
@@ -82,7 +94,9 @@ func (h *AuthHandler) Login(c *gin.Context) {
 		Data: models.LoginResponse{
 			ID:    user.ID,
 			Email: user.Email,
+			Role: user.Role,
 			Token: token,
 		},
 	})
 }
+

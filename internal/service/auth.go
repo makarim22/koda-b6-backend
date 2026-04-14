@@ -37,6 +37,8 @@ func (s *AuthService) Register(ctx context.Context, email, password string) (*mo
 	user := &models.User{
 		Email:    email,
 		Password: hashedPassword,
+		Role:     models.RoleUser,
+		
 	}
 
 	// Save to repository
@@ -48,6 +50,38 @@ func (s *AuthService) Register(ctx context.Context, email, password string) (*mo
 	return &models.User{
 		ID:    user.ID,
 		Email: user.Email,
+		Role:  user.Role,
+	}, nil
+}
+
+func (s *AuthService) RegisterWithRole(ctx context.Context, email, password, role string) (*models.User, error) {
+
+	existingUser, err := s.userRepo.GetByEmail(ctx, email)
+	if err == nil && existingUser != nil {
+		return nil, fmt.Errorf("email already registered")
+	}
+
+	// Hash password
+	hashedPassword, err := lib.HashPassword(password)
+	if err != nil {
+		return nil, fmt.Errorf("failed to hash password: %w", err)
+	}
+
+	// Create user
+	user := &models.User{
+		Email:    email,
+		Password: hashedPassword,
+		Role:     role,
+	}
+
+	if err := s.userRepo.Create(ctx, user); err != nil {
+		return nil, fmt.Errorf("failed to register user: %w", err)
+	}
+
+	return &models.User{
+		ID:    user.ID,
+		Email: user.Email,
+		Role:  user.Role,
 	}, nil
 }
 
@@ -85,5 +119,6 @@ func (s *AuthService) Login(ctx context.Context, email, password string) (*model
 	return &models.User{
 		ID:    user.ID,
 		Email: user.Email,
+		Role: user.Role,
 	}, token, nil
 }

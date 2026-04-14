@@ -85,7 +85,7 @@ func (h *OrderDetailHandler) Create(c *gin.Context) {
 //}
 
 func (h *OrderDetailHandler) GetByOrderID(c *gin.Context) {
-	orderIDParam := c.Param("order_id")
+	orderIDParam := c.Param("id")
 	orderID, err := strconv.Atoi(orderIDParam)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid order id"})

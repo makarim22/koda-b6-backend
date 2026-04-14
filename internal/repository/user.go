@@ -18,30 +18,6 @@ func NewUserRepository(db *pgxpool.Pool) *UserRepository {
 	}
 }
 
-//func (u *UserRepository) GetAll(ctx context.Context) ([]models.User, error) {
-//	rows, err := u.db.Query(ctx,
-//		`SELECT id, full_name, email, password, phone FROM users`)
-//	if err != nil {
-//		return nil, err
-//	}
-//	defer rows.Close()
-//
-//	var users []models.User
-//	for rows.Next() {
-//		var user models.User
-//		err := rows.Scan(&user.ID, &user.Name, &user.Email, &user.Password, &user.Phone)
-//		if err != nil {
-//			return nil, err
-//		}
-//		users = append(users, user)
-//	}
-//
-//	if err = rows.Err(); err != nil {
-//		return nil, err
-//	}
-//
-//	return users, nil
-//}
 
 func (u *UserRepository) GetAll(ctx context.Context) ([]models.User, error) {
 	rows, err := u.db.Query(ctx,
@@ -87,12 +63,29 @@ func (u *UserRepository) GetByID(ctx context.Context, id int) (*models.User, err
 	return &user, nil
 }
 
+// func (u *UserRepository) GetByEmail(ctx context.Context, email string) (*models.User, error) {
+// 	var user models.User
+
+// 	err := u.db.QueryRow(ctx,
+// 		`SELECT id, full_name, email, password FROM users WHERE email = $1`,
+// 		email).Scan(&user.ID, &user.Name, &user.Email, &user.Password)
+
+// 	if err != nil {
+// 		return nil, err
+// 	}
+
+// 	return &user, nil
+// }
+
 func (u *UserRepository) GetByEmail(ctx context.Context, email string) (*models.User, error) {
 	var user models.User
 
 	err := u.db.QueryRow(ctx,
-		`SELECT id, full_name, email, password FROM users WHERE email = $1`,
-		email).Scan(&user.ID, &user.Name, &user.Email, &user.Password)
+		`SELECT u.id, u.full_name, u.email, u.password, ur.role 
+		 FROM users u
+		 LEFT JOIN user_roles ur ON u.id = ur.user_id
+		 WHERE u.email = $1`,
+		email).Scan(&user.ID, &user.Name, &user.Email, &user.Password, &user.Role)
 
 	if err != nil {
 		return nil, err
@@ -102,13 +95,36 @@ func (u *UserRepository) GetByEmail(ctx context.Context, email string) (*models.
 }
 
 func (u *UserRepository) Create(ctx context.Context, user *models.User) error {
-	err := u.db.QueryRow(ctx,
+	tx, err := u.db.Begin(ctx)
+	if err != nil {
+		return fmt.Errorf("failed to start transaction: %w", err)
+	}
+	defer tx.Rollback(ctx)
+
+	err = tx.QueryRow(ctx,
 		`INSERT INTO users (full_name, email, password) 
 		 VALUES ($1, $2, $3)
 		 RETURNING id`,
 		user.Name, user.Email, user.Password).Scan(&user.ID)
+	
+	if err != nil {
+		return fmt.Errorf("failed to insert user: %w", err)
+	}
 
-	return err
+	_, err = tx.Exec(ctx,
+		`INSERT INTO user_roles (user_id, role)
+		 VALUES ($1, $2)`,
+		user.ID, user.Role)
+	
+	if err != nil {
+		return fmt.Errorf("failed to assign role: %w", err)
+	}
+
+	if err = tx.Commit(ctx); err != nil {
+		return fmt.Errorf("failed to commit transaction: %w", err)
+	}
+
+	return nil
 }
 
 func (u *UserRepository) Update(ctx context.Context, user *models.User) error {
@@ -133,6 +149,15 @@ func (u *UserRepository) Delete(ctx context.Context, idInt int) error {
 	_, err := u.db.Exec(ctx,
 		`DELETE FROM users WHERE id = $1`,
 		idInt)
+
+	return err
+}
+
+func (u *UserRepository) AssignRole(ctx context.Context, userID int, role string) error {
+	_, err := u.db.Exec(ctx,
+		`UPDATE user_roles SET role = $1, updated_at = CURRENT_TIMESTAMP
+		 WHERE user_id = $2`,
+		role, userID)
 
 	return err
 }
