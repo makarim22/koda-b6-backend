@@ -53,7 +53,7 @@ func main() {
 
 	serverPort := os.Getenv("SERVER_PORT")
 	if serverPort == "" {
-		serverPort = ":8888"
+		serverPort = ":3002"
 	}
 
 	ctx := context.Background()

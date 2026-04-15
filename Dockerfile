@@ -27,7 +27,7 @@ WORKDIR /app
 # Copy binary dari builder
 COPY --from=builder /workspace/backend-coffeeshop /app/
 
-EXPOSE 8888
+EXPOSE 3002
 
 # ✅ FIX: Path binary yang benar
 ENTRYPOINT ["./backend-coffeeshop"]
