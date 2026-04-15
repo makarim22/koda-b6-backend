@@ -56,6 +56,9 @@ func (p *ProductService) CreateProduct(ctx context.Context, product *models.Prod
 		return errors.New("failed to create product")
 	}
 
+	// Invalidate cache after creation
+	_ = p.productRepo.InvalidateAllProducts(ctx)
+
 	return nil
 }
 

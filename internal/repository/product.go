@@ -5,25 +5,41 @@ import (
 	"errors"
 	"fmt"
 	"log"
+	"time"
 
 	"koda-b6-backend/internal/models"
+	"koda-b6-backend/internal/cache"
+
 
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
+	
 )
 
 type ProductRepository struct {
 	db *pgxpool.Pool
+	cache *cache.RedisCache
 }
 
-func NewProductRepository(db *pgxpool.Pool) *ProductRepository {
+func NewProductRepository(db *pgxpool.Pool, cache *cache.RedisCache) *ProductRepository {
 	return &ProductRepository{
 		db: db,
+		cache : cache,
 	}
 }
 
 func (p *ProductRepository) GetAll(ctx context.Context) ([]models.Product, error) {
+	cacheKey := "products:all"
+
+	var cachedProducts []models.Product
+	if err := p.cache.Get(ctx, cacheKey, &cachedProducts); err == nil {
+		log.Printf("✅ [CACHE HIT] Retrieved %d products from cache", len(cachedProducts))
+		return cachedProducts, nil  // Cache HIT
+	}
+	log.Printf("❌ [CACHE MISS] Cache key '%s' not found, querying database", cacheKey)
+
 	// Query 1: Get all products
+	log.Printf("📡 [QUERY 1] Starting to fetch all products...")
 	productRows, err := p.db.Query(ctx, `
 		SELECT 
 			id,
@@ -35,6 +51,7 @@ func (p *ProductRepository) GetAll(ctx context.Context) ([]models.Product, error
 		ORDER BY id DESC
 	`)
 	if err != nil {
+		log.Printf("❌ [QUERY 1 ERROR] Failed to query products: %v", err)
 		return nil, fmt.Errorf("failed to query products: %w", err)
 	}
 	defer productRows.Close()
@@ -52,6 +69,7 @@ func (p *ProductRepository) GetAll(ctx context.Context) ([]models.Product, error
 			&product.BasePrice,
 		)
 		if err != nil {
+			log.Printf("❌ [SCAN ERROR] Failed to scan product: %v", err)
 			return nil, fmt.Errorf("failed to scan product: %w", err)
 		}
 
@@ -64,14 +82,24 @@ func (p *ProductRepository) GetAll(ctx context.Context) ([]models.Product, error
 	}
 
 	if err = productRows.Err(); err != nil {
+		log.Printf("❌ [ITERATION ERROR] Error iterating products: %v", err)
 		return nil, fmt.Errorf("error iterating products: %w", err)
 	}
 
+	log.Printf("✅ [QUERY 1 COMPLETE] Found %d products with IDs: %v", len(products), productIDs)
+
+	// Handle empty products
 	if len(products) == 0 {
+		log.Printf("⚠️ [EMPTY RESULT] No products found in database")
+		// Cache empty result (5 menit)
+		if err := p.cache.Set(ctx, cacheKey, []models.Product{}, 5*time.Minute); err != nil {
+			log.Printf("⚠️ [CACHE SET ERROR] Failed to cache empty result: %v", err)
+		}
 		return products, nil
 	}
 
 	// Query 2: Get all images for these products
+	log.Printf("📡 [QUERY 2] Starting to fetch images for %d products...", len(products))
 	imageRows, err := p.db.Query(ctx, `
 		SELECT 
 			id,
@@ -83,6 +111,7 @@ func (p *ProductRepository) GetAll(ctx context.Context) ([]models.Product, error
 		ORDER BY product_id, is_primary DESC
 	`, productIDs)
 	if err != nil {
+		log.Printf("❌ [QUERY 2 ERROR] Failed to query product images: %v", err)
 		return nil, fmt.Errorf("failed to query product images: %w", err)
 	}
 	defer imageRows.Close()
@@ -93,6 +122,7 @@ func (p *ProductRepository) GetAll(ctx context.Context) ([]models.Product, error
 		productMap[products[i].ID] = &products[i]
 	}
 
+	imageCount := 0
 	for imageRows.Next() {
 		var (
 			id        int
@@ -102,6 +132,7 @@ func (p *ProductRepository) GetAll(ctx context.Context) ([]models.Product, error
 		)
 		err := imageRows.Scan(&id, &productID, &path, &isPrimary)
 		if err != nil {
+			log.Printf("❌ [SCAN IMAGE ERROR] Failed to scan image: %v", err)
 			return nil, fmt.Errorf("failed to scan image: %w", err)
 		}
 
@@ -112,14 +143,19 @@ func (p *ProductRepository) GetAll(ctx context.Context) ([]models.Product, error
 				Path:      path,
 				IsPrimary: isPrimary,
 			})
+			imageCount++
 		}
 	}
 
 	if err = imageRows.Err(); err != nil {
+		log.Printf("❌ [ITERATION IMAGE ERROR] Error iterating images: %v", err)
 		return nil, fmt.Errorf("error iterating images: %w", err)
 	}
 
+	log.Printf("✅ [QUERY 2 COMPLETE] Loaded %d images for products", imageCount)
+
 	// Query 3: Get all variants for these products
+	log.Printf("📡 [QUERY 3] Starting to fetch variants for %d products...", len(products))
 	variantRows, err := p.db.Query(ctx, `
 		SELECT DISTINCT
 			pv.variant_id,
@@ -131,10 +167,12 @@ func (p *ProductRepository) GetAll(ctx context.Context) ([]models.Product, error
 		ORDER BY pv.product_id
 	`, productIDs)
 	if err != nil {
+		log.Printf("❌ [QUERY 3 ERROR] Failed to query variants: %v", err)
 		return nil, fmt.Errorf("failed to query variants: %w", err)
 	}
 	defer variantRows.Close()
 
+	variantCount := 0
 	for variantRows.Next() {
 		var (
 			variantID int
@@ -143,6 +181,7 @@ func (p *ProductRepository) GetAll(ctx context.Context) ([]models.Product, error
 		)
 		err := variantRows.Scan(&variantID, &name, &productID)
 		if err != nil {
+			log.Printf("❌ [SCAN VARIANT ERROR] Failed to scan variant: %v", err)
 			return nil, fmt.Errorf("failed to scan variant: %w", err)
 		}
 
@@ -151,14 +190,19 @@ func (p *ProductRepository) GetAll(ctx context.Context) ([]models.Product, error
 				ID:   variantID,
 				Name: name,
 			})
+			variantCount++
 		}
 	}
 
 	if err = variantRows.Err(); err != nil {
+		log.Printf("❌ [ITERATION VARIANT ERROR] Error iterating variants: %v", err)
 		return nil, fmt.Errorf("error iterating variants: %w", err)
 	}
 
+	log.Printf("✅ [QUERY 3 COMPLETE] Loaded %d variants for products", variantCount)
+
 	// Query 4: Get all sizes for these products
+	log.Printf("📡 [QUERY 4] Starting to fetch sizes for %d products...", len(products))
 	sizeRows, err := p.db.Query(ctx, `
 		SELECT DISTINCT
 			ps.size_id,
@@ -170,10 +214,12 @@ func (p *ProductRepository) GetAll(ctx context.Context) ([]models.Product, error
 		ORDER BY ps.product_id
 	`, productIDs)
 	if err != nil {
+		log.Printf("❌ [QUERY 4 ERROR] Failed to query sizes: %v", err)
 		return nil, fmt.Errorf("failed to query sizes: %w", err)
 	}
 	defer sizeRows.Close()
 
+	sizeCount := 0
 	for sizeRows.Next() {
 		var (
 			sizeID    int
@@ -182,6 +228,7 @@ func (p *ProductRepository) GetAll(ctx context.Context) ([]models.Product, error
 		)
 		err := sizeRows.Scan(&sizeID, &name, &productID)
 		if err != nil {
+			log.Printf("❌ [SCAN SIZE ERROR] Failed to scan size: %v", err)
 			return nil, fmt.Errorf("failed to scan size: %w", err)
 		}
 
@@ -190,13 +237,24 @@ func (p *ProductRepository) GetAll(ctx context.Context) ([]models.Product, error
 				ID:   sizeID,
 				Name: name,
 			})
+			sizeCount++
 		}
 	}
 
 	if err = sizeRows.Err(); err != nil {
+		log.Printf("❌ [ITERATION SIZE ERROR] Error iterating sizes: %v", err)
 		return nil, fmt.Errorf("error iterating sizes: %w", err)
 	}
 
+	log.Printf("✅ [QUERY 4 COMPLETE] Loaded %d sizes for products", sizeCount)
+
+	// Cache the results
+	log.Printf("💾 [CACHE SET] Caching %d products with key '%s' for 10 minutes", len(products), cacheKey)
+	if err := p.cache.Set(ctx, cacheKey, products, 10*time.Minute); err != nil {
+		log.Printf("⚠️ [CACHE SET ERROR] Failed to cache products: %v", err)  // Log saja, jangan return error
+	}
+
+	log.Printf("✅ [FINAL RESULT] Successfully returning %d products", len(products))
 	return products, nil
 }
 
@@ -423,72 +481,6 @@ func (p *ProductRepository) MostReviewWithPrimaryImage(ctx context.Context) (*[]
 	return &products, nil
 }
 
-// func (r *OrderRepository) GetOrderDetails(ctx context.Context, orderID int) ([]models.OrderDetailResponse, error) {
-// 	log.Printf("[GetOrderDetails] Starting query for orderID: %d", orderID)
-
-// 	query := `
-// 		SELECT 
-// 			oi.id,
-// 			oi.product_id,
-// 			p.product_name,
-// 			oi.quantity,
-// 			p.base_price,
-// 			oi.size_id,
-// 			s.name as size_name,
-// 			oi.variant_id,
-// 			v.name as variant_name
-// 		FROM order_items oi
-// 		JOIN products p ON oi.product_id = p.id
-// 		LEFT JOIN sizes s ON oi.size_id = s.id
-// 		LEFT JOIN variants v ON oi.variant_id = v.id
-// 		WHERE oi.order_id = $1
-// 	`
-
-// 	rows, err := r.db.Query(ctx, query, orderID)
-// 	if err != nil {
-// 		log.Printf("[GetOrderDetails] Query failed for orderID %d: %v", orderID, err)
-// 		return nil, fmt.Errorf("failed to get order details: %w", err)
-// 	}
-// 	defer rows.Close()
-
-// 	log.Printf("[GetOrderDetails] Query executed successfully for orderID: %d", orderID)
-
-// 	var details []models.OrderDetailResponse
-// 	rowCount := 0
-// 	for rows.Next() {
-// 		rowCount++
-// 		var detail models.OrderDetailResponse
-// 		err := rows.Scan(
-// 			&detail.ID,
-// 			&detail.ProductID,
-// 			&detail.ProductName,
-// 			&detail.Quantity,
-// 			&detail.Price,
-// 			&detail.SizeID,
-// 			&detail.SizeName,
-// 			&detail.VariantID,
-// 			&detail.VariantName,
-// 		)
-// 		if err != nil {
-// 			log.Printf("[GetOrderDetails] Scan error on row %d for orderID %d: %v", rowCount, orderID, err)
-// 			return nil, fmt.Errorf("failed to scan order detail: %w", err)
-// 		}
-// 		log.Printf("[GetOrderDetails] Row %d scanned - ProductID: %d, ProductName: %s, Quantity: %d",
-// 			rowCount, detail.ProductID, detail.ProductName, detail.Quantity)
-// 		details = append(details, detail)
-// 	}
-
-// 	if err = rows.Err(); err != nil {
-// 		log.Printf("[GetOrderDetails] Iterator error for orderID %d: %v", orderID, err)
-// 		return nil, fmt.Errorf("error iterating order details: %w", err)
-// 	}
-
-// 	log.Printf("[GetOrderDetails] Completed for orderID: %d - Total rows scanned: %d", orderID, rowCount)
-
-// 	return details, nil
-// }
-
-
 func (r *OrderRepository) GetOrderDetails(ctx context.Context, orderID int) ([]models.OrderDetailResponse, error) {
 	log.Printf("[GetOrderDetails] Starting query for orderID: %d", orderID)
 
@@ -710,4 +702,21 @@ func (p *ProductRepository) GetTopProductsByQuantity(ctx context.Context, limit 
 	}
 
 	return result, nil
+}
+
+func (p *ProductRepository) InvalidateCache(ctx context.Context, productID int) error {
+	// ✅ Correct: Delete langsung return error
+	if err := p.cache.Delete(ctx, fmt.Sprintf("product:%d", productID)); err != nil {
+		return fmt.Errorf("failed to invalidate product cache: %w", err)
+	}
+
+	if err := p.cache.Delete(ctx, "products:all"); err != nil {
+		return fmt.Errorf("failed to invalidate products:all cache: %w", err)
+	}
+
+	return nil
+}
+
+func (p *ProductRepository) InvalidateAllProducts(ctx context.Context) error {
+	return p.cache.Delete(ctx, "products:all")
 }
