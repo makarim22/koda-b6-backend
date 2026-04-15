@@ -9,6 +9,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"strings"
 
 	"github.com/gin-gonic/gin"
 	"github.com/jackc/pgx/v5/pgxpool"
@@ -51,10 +52,17 @@ func main() {
 		log.Fatal("❌ DATABASE_URL environment variable is not set")
 	}
 
+	// serverPort := os.Getenv("SERVER_PORT")
+	// if serverPort == "" {
+	// 	serverPort = ":3002"
+	// }
+
 	serverPort := os.Getenv("SERVER_PORT")
-	if serverPort == "" {
-		serverPort = ":3002"
-	}
+    if serverPort == "" {
+    serverPort = ":3002"
+    } else if !strings.HasPrefix(serverPort, ":") {
+    serverPort = ":" + serverPort
+    }
 
 	ctx := context.Background()
 
