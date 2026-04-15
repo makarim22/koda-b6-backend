@@ -9,58 +9,70 @@ services:
     ports:
       - "8081:8080"
     environment:
-      - DB_HOST=postgres
+      # Database configuration - UPDATED to match Node.js setup
+      - DB_HOST=backend-js-postgres-1
       - DB_PORT=5432
       - DB_USER=postgres
-      - DB_PASSWORD=postgres
+      - DB_PASSWORD=password
       - DB_NAME=coffeeshop
-      - REDIS_URL=redis:6379
-      - REDIS_ADDR=redis:6379 
-      - SERVER_PORT=8080 
+      - DATABASE_URL=postgresql://postgres:password@backend-js-postgres-1:5432/coffeeshop?sslmode=disable
+      
+      # Redis configuration - UPDATED to match Node.js setup
+      - REDIS_URL=redis://backend-js-redis-cache-1:6379
+      - REDIS_ADDR=backend-js-redis-cache-1:6379
+      
+      # Server configuration
+      - SERVER_PORT=8080
       - JWT_SECRET=7x!A%D*F-JaNdRgUkXp2s5v8y/B?E(H+MbQeShVmYq3t6w9z$C&F)J@NcRfUjXn2r
       - JWT_EXPIRATION=24h
-      - DATABASE_URL=postgresql://postgres:postgres@postgres:5432/coffeeshop?sslmode=disable
-    depends_on:
-      postgres:
-        condition: service_healthy
-      redis:
-        condition: service_healthy
+    
+    # Note: postgres and redis-cache are external services running in Node.js docker-compose
+    # No depends_on needed since we're connecting to external network
+    
+    # UPDATED - use coffee-network to match Node.js
     networks:
-      - coffee_network
+      - coffee-network
 
-  postgres:
-    image: postgres:15-alpine
-    container_name: coffee_postgres
-    environment:
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgres
-      POSTGRES_DB: coffeeshop
-    volumes:
-      - postgres_data:/var/lib/postgresql/data
+  # Note: postgres dan redis-cache sudah ada di Node.js docker-compose
+  # Jangan jalankan services ini di sini, hanya reference network-nya
+  # Tapi jika Golang dijalankan standalone, uncomment di bawah:
 
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-    networks:
-      - coffee_network
+  # postgres:
+  #   image: postgres:15-alpine
+  #   container_name: coffee_postgres
+  #   environment:
+  #     POSTGRES_USER: postgres
+  #     POSTGRES_PASSWORD: password
+  #     POSTGRES_DB: coffee_shop
+  #   volumes:
+  #     - postgres_data:/var/lib/postgresql/data
+  #   healthcheck:
+  #     test: ["CMD-SHELL", "pg_isready -U postgres"]
+  #     interval: 10s
+  #     timeout: 5s
+  #     retries: 5
+  #   networks:
+  #     - coffee-network
 
-  redis:
-    image: redis:7-alpine
-    container_name: coffee_redis
+  # redis-cache:
+  #   image: redis:7-alpine
+  #   container_name: coffee_redis
+  #   volumes:
+  #     - redis_data:/data
+  #   healthcheck:
+  #     test: ["CMD", "redis-cli", "ping"]
+  #     interval: 10s
+  #     timeout: 5s
+  #     retries: 5
+  #   networks:
+  #     - coffee-network
 
-    healthcheck:
-      test: ["CMD", "redis-cli", "ping"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-    networks:
-      - coffee_network
+# volumes:
+#   postgres_data:
+#   redis_data:
 
-volumes:
-  postgres_data:
-
+# Use external network dari Node.js setup
 networks:
-  coffee_network:
-    driver: bridge
+  coffee-network:
+    external: true
+    name: backend-js_coffee-network
