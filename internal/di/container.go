@@ -2,17 +2,27 @@ package di
 
 import (
 	"fmt"
+	"time"
+	"context"
 	"koda-b6-backend/internal/handlers"
+	"koda-b6-backend/internal/lib"
 	"koda-b6-backend/internal/repository"
 	"koda-b6-backend/internal/service"
+	"koda-b6-backend/internal/cache"
 
 	//"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
+	"github.com/redis/go-redis/v9"
 )
 
 type Container struct {
 	//db *pgx.Conn
 	db *pgxpool.Pool
+
+	//redis
+
+    redisClient *redis.Client  
+	redisCache  *cache.RedisCache 
 
 	// user
 	userRepo    *repository.UserRepository
@@ -91,6 +101,12 @@ func NewContainer(db *pgxpool.Pool) (*Container, error) {
 		db: db,
 	}
 
+	// Initialize Redis BEFORE other dependencies  
+	if err := container.initRedis(); err != nil {  
+		return nil, fmt.Errorf("redis initialization failed: %w", err)  
+	}  
+
+
 	container.initDependencies()
 
 	return container, nil
@@ -105,7 +121,7 @@ func (c *Container) initDependencies() {
 	c.authHandler = handlers.NewAuthHandler(c.userService, c.authService)
 
 	//Products
-	c.productRepo = repository.NewProductRepository(c.db)
+	c.productRepo = repository.NewProductRepository(c.db, c.redisCache)
 	c.productService = service.NewProductService(c.productRepo)
 	c.productHandler = handlers.NewProductHandler(c.productService)
 
@@ -165,6 +181,38 @@ func (c *Container) initDependencies() {
 	c.productImageHandler = handlers.NewProductImageHandler(c.productImageService)
 
 }
+
+func (c *Container) initRedis() error {  
+	cfg := lib.NewRedisConfig()
+	c.redisClient = redis.NewClient(cfg.ToClientOptions())  
+	  
+	// Test connection  
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)  
+	defer cancel()  
+	  
+	if err := c.redisClient.Ping(ctx).Err(); err != nil {  
+		return fmt.Errorf("redis connection failed: %w", err)  
+	}  
+	  
+	c.redisCache = cache.NewRedisCache(c.redisClient)  
+	return nil  
+}  
+
+func (c *Container) RedisClient() *redis.Client {  
+	return c.redisClient  
+}  
+
+func (c *Container) RedisCache() *cache.RedisCache {  
+	return c.redisCache  
+}  
+
+func (c *Container) Close() error {  
+	if c.redisClient != nil {  
+		return c.redisClient.Close()  
+	}  
+	return nil  
+}  
+
 
 func (c *Container) UserHandler() *handlers.UserHandler {
 	return c.userHandler
