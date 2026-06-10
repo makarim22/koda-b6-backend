@@ -90,6 +90,11 @@ type Container struct {
 	productImageRepo    *repository.ProductImageRepository
 	productImageService *service.ProductImageService
 	productImageHandler *handlers.ProductImageHandler
+
+	//voucher
+	voucherRepo    *repository.VoucherRepository
+	voucherService *service.VoucherService
+	voucherHandler *handlers.VoucherHandler
 }
 
 func NewContainer(db *pgxpool.Pool) (*Container, error) {
@@ -130,9 +135,14 @@ func (c *Container) initDependencies() {
 	c.forgotPasswordService = service.NewForgotPasswordService(c.userRepo, c.forgotPasswordRepo)
 	c.forgotPasswordHandler = handlers.NewForgotPasswordHandler(c.forgotPasswordService)
 
+	//voucher
+	c.voucherRepo = repository.NewVoucherRepository(c.db)
+	c.voucherService = service.NewVoucherService(c.voucherRepo)
+	c.voucherHandler = handlers.NewVoucherHandler(c.voucherService)
+
 	//order
 	c.orderRepo = repository.NewOrderRepository(c.db)
-	c.orderService = service.NewOrderService(c.orderRepo, c.productRepo)
+	c.orderService = service.NewOrderService(c.orderRepo, c.productRepo, c.voucherService)
 	c.orderHandler = handlers.NewOrderHandler(c.orderService)
 
 	//cart
@@ -259,3 +269,5 @@ func (c *Container) ProductDiscountHandler() *handlers.ProductDiscountHandler {
 }
 
 func (c *Container) ProductImageHandler() *handlers.ProductImageHandler { return c.productImageHandler }
+
+func (c *Container) VoucherHandler() *handlers.VoucherHandler { return c.voucherHandler }

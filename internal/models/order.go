@@ -9,8 +9,10 @@ type Order struct {
 	Subtotal    float64   `db:"subtotal" json:"subtotal"`
 	Tax         float64   `db:"tax" json:"tax"`
 	DeliveryFee float64   `db:"delivery_fee" json:"delivery_fee"`
-	Status      string    `db:"status" json:"status"`
-	CreatedAt   time.Time `db:"created_at" json:"created_at"`
+	Status         string    `db:"status" json:"status"`
+	VoucherID      *int      `db:"voucher_id" json:"voucher_id,omitempty"`
+	DiscountAmount float64   `db:"discount_amount" json:"discount_amount"`
+	CreatedAt      time.Time `db:"created_at" json:"created_at"`
 }
 
 type OrderDetail struct {
@@ -30,6 +32,7 @@ type OrderDetail struct {
 type CreateOrderRequest struct {
 	DeliveryFee float64 `json:"delivery_fee" binding:"gte=0"`
 	Tax         float64 `json:"tax" binding:"gte=0"`
+	VoucherCode string  `json:"voucher_code,omitempty"`
 }
 
 type OrderResponse struct {
@@ -38,10 +41,11 @@ type OrderResponse struct {
 	OrderDate   time.Time             `json:"order_date"`
 	Subtotal    float64               `json:"subtotal"`
 	Tax         float64               `json:"tax"`
-	DeliveryFee float64               `json:"delivery_fee"`
-	Total       float64               `json:"total"`
-	Status      string                `json:"status"`
-	Items       []OrderDetailResponse `json:"items"`
+	DeliveryFee    float64               `json:"delivery_fee"`
+	DiscountAmount float64               `json:"discount_amount"`
+	Total          float64               `json:"total"`
+	Status         string                `json:"status"`
+	Items          []OrderDetailResponse `json:"items"`
 	CreatedAt   time.Time             `json:"created_at"`
 }
 

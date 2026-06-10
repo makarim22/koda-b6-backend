@@ -24,6 +24,7 @@ func SetupRoutes(router *gin.Engine, container *di.Container) {
 	sizeHandler := container.SizeHandler()
 	productDiscountHandler := container.ProductDiscountHandler()
 	productImageHandler := container.ProductImageHandler()
+	voucherHandler := container.VoucherHandler()
 
 	api := router.Group("/api")
 	{
@@ -128,6 +129,12 @@ func SetupRoutes(router *gin.Engine, container *di.Container) {
 	{
 		sizes.POST("", sizeHandler.CreateSize)
 		sizes.GET("", sizeHandler.GetAllSizes)
+	}
+
+	vouchers := api.Group("/vouchers")
+	vouchers.Use(middleware.AuthMiddleware())
+	{
+		vouchers.POST("/validate", voucherHandler.ValidateVoucher)
 	}
 
 	public := router.Group("/public")

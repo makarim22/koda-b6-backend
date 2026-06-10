@@ -8,14 +8,16 @@ import (
 )
 
 type OrderService struct {
-	orderRepo   *repository.OrderRepository
-	productRepo *repository.ProductRepository
+	orderRepo      *repository.OrderRepository
+	productRepo    *repository.ProductRepository
+	voucherService *VoucherService
 }
 
-func NewOrderService(orderRepo *repository.OrderRepository, productRepo *repository.ProductRepository) *OrderService {
+func NewOrderService(orderRepo *repository.OrderRepository, productRepo *repository.ProductRepository, voucherService *VoucherService) *OrderService {
 	return &OrderService{
-		orderRepo:   orderRepo,
-		productRepo: productRepo,
+		orderRepo:      orderRepo,
+		productRepo:    productRepo,
+		voucherService: voucherService,
 	}
 }
 
@@ -34,17 +36,39 @@ func (s *OrderService) CreateOrder(ctx context.Context, customerID int, req mode
 		subtotal += item.Price * float64(item.Quantity)
 	}
 
+	var voucherID *int
+	var discountAmount float64
+
+	if req.VoucherCode != "" {
+		voucher, discAmt, err := s.voucherService.CalculateDiscount(ctx, req.VoucherCode, subtotal)
+		if err != nil {
+			return nil, fmt.Errorf("voucher error: %w", err)
+		}
+		vid := voucher.ID
+		voucherID = &vid
+		discountAmount = discAmt
+	}
+
 	order := &models.Order{
-		CustomerID:  customerID,
-		Subtotal:    subtotal,
-		Tax:         req.Tax,
-		DeliveryFee: req.DeliveryFee,
-		Status:      "pending",
+		CustomerID:     customerID,
+		Subtotal:       subtotal,
+		Tax:            req.Tax,
+		DeliveryFee:    req.DeliveryFee,
+		Status:         "pending",
+		VoucherID:      voucherID,
+		DiscountAmount: discountAmount,
 	}
 
 	orderID, err := s.orderRepo.CreateOrder(ctx, order)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create order: %w", err)
+	}
+
+	if voucherID != nil {
+		if err := s.voucherService.voucherRepo.IncrementUsage(ctx, *voucherID); err != nil {
+			// Intentionally not failing the order if usage increment fails
+			fmt.Printf("failed to increment voucher usage: %v\n", err)
+		}
 	}
 
 	if err := s.orderRepo.CreateOrderDetails(ctx, orderID, cartItems); err != nil {
@@ -74,15 +98,16 @@ func (s *OrderService) GetOrder(ctx context.Context, orderID int, customerID int
 	}
 
 	response := &models.OrderResponse{
-		ID:          order.ID,
-		CustomerID:  order.CustomerID,
-		OrderDate:   order.OrderDate,
-		Subtotal:    order.Subtotal,
-		Tax:         order.Tax,
-		DeliveryFee: order.DeliveryFee,
-		Total:       order.Subtotal + order.Tax + order.DeliveryFee,
-		Status:      order.Status,
-		CreatedAt:   order.CreatedAt,
+		ID:             order.ID,
+		CustomerID:     order.CustomerID,
+		OrderDate:      order.OrderDate,
+		Subtotal:       order.Subtotal,
+		Tax:            order.Tax,
+		DeliveryFee:    order.DeliveryFee,
+		DiscountAmount: order.DiscountAmount,
+		Total:          order.Subtotal + order.Tax + order.DeliveryFee - order.DiscountAmount,
+		Status:         order.Status,
+		CreatedAt:      order.CreatedAt,
 	}
 
 	for _, detail := range details {
@@ -119,16 +144,17 @@ func (s *OrderService) GetUserOrders(ctx context.Context, customerID int, limit,
 	var responses []models.OrderResponse
 	for _, order := range orders {
 		response := models.OrderResponse{
-			ID:          order.ID,
-			CustomerID:  order.CustomerID,
-			OrderDate:   order.OrderDate,
-			Subtotal:    order.Subtotal,
-			Tax:         order.Tax,
-			DeliveryFee: order.DeliveryFee,
-			Total:       order.Subtotal + order.Tax + order.DeliveryFee,
-			Status:      order.Status,
-			CreatedAt:   order.CreatedAt,
-			Items:       order.Items,
+			ID:             order.ID,
+			CustomerID:     order.CustomerID,
+			OrderDate:      order.OrderDate,
+			Subtotal:       order.Subtotal,
+			Tax:            order.Tax,
+			DeliveryFee:    order.DeliveryFee,
+			DiscountAmount: order.DiscountAmount,
+			Total:          order.Subtotal + order.Tax + order.DeliveryFee - order.DiscountAmount,
+			Status:         order.Status,
+			CreatedAt:      order.CreatedAt,
+			Items:          order.Items,
 		}
 		responses = append(responses, response)
 	}

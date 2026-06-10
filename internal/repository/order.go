@@ -23,8 +23,8 @@ func (r *OrderRepository) CreateOrder(ctx context.Context, order *models.Order) 
 	var orderID int
 
 	query := `
-		INSERT INTO orders (customer_id, subtotal, tax, delivery_fee, status)
-		VALUES ($1, $2, $3, $4, $5)
+		INSERT INTO orders (customer_id, subtotal, tax, delivery_fee, status, voucher_id, discount_amount)
+		VALUES ($1, $2, $3, $4, $5, $6, $7)
 		RETURNING id
 	`
 
@@ -34,6 +34,8 @@ func (r *OrderRepository) CreateOrder(ctx context.Context, order *models.Order) 
 		order.Tax,
 		order.DeliveryFee,
 		order.Status,
+		order.VoucherID,
+		order.DiscountAmount,
 	).Scan(&orderID)
 
 	if err != nil {
@@ -72,7 +74,7 @@ func (r *OrderRepository) GetOrderByID(ctx context.Context, orderID int) (*model
 	var order models.Order
 
 	query := `
-		SELECT id, customer_id, order_date, subtotal, tax, delivery_fee, status, created_at
+		SELECT id, customer_id, order_date, subtotal, tax, delivery_fee, status, voucher_id, discount_amount, created_at
 		FROM orders
 		WHERE id = $1
 	`
@@ -85,6 +87,8 @@ func (r *OrderRepository) GetOrderByID(ctx context.Context, orderID int) (*model
 		&order.Tax,
 		&order.DeliveryFee,
 		&order.Status,
+		&order.VoucherID,
+		&order.DiscountAmount,
 		&order.CreatedAt,
 	)
 
@@ -197,7 +201,7 @@ func (r *OrderRepository) DeleteOrder(ctx context.Context, orderID int) error {
 
 func (r *OrderRepository) GetUserOrders(ctx context.Context, customerID int, limit, offset int) ([]models.OrderResponse, error) {
 	query := `
-		SELECT id, customer_id, order_date, subtotal, tax, delivery_fee, status, created_at
+		SELECT id, customer_id, order_date, subtotal, tax, delivery_fee, status, discount_amount, created_at
 		FROM orders
 		WHERE customer_id = $1
 		ORDER BY created_at DESC
@@ -226,6 +230,7 @@ func (r *OrderRepository) GetUserOrders(ctx context.Context, customerID int, lim
 			&order.Tax,
 			&order.DeliveryFee,
 			&order.Status,
+			&order.DiscountAmount,
 			&order.CreatedAt,
 		)
 		if err != nil {
