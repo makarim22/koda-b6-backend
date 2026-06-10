@@ -2,6 +2,7 @@ package repository
 
 import (
 	"context"
+	"database/sql"
 	"fmt"
 	"koda-b6-backend/internal/models"
 
@@ -146,21 +147,48 @@ func (r *CartRepository) GetCartItems(ctx context.Context, customerID int) ([]mo
 	var items []models.CartItem
 	for rows.Next() {
 		var item models.CartItem
+		var sizeID sql.NullInt64
+		var sizeName sql.NullString
+		var variantID sql.NullInt64
+		var variantName sql.NullString
+		var image sql.NullString
+
 		err := rows.Scan(
 			&item.ID,
 			&item.ProductID,
 			&item.ProductName,
 			&item.Price,
 			&item.Quantity,
-			&item.SizeID,
-			&item.SizeName,
-			&item.VariantID,
-			&item.VariantName,
-			&item.Image,
+			&sizeID,
+			&sizeName,
+			&variantID,
+			&variantName,
+			&image,
 			&item.CreatedAt,
 		)
 		if err != nil {
 			return nil, fmt.Errorf("failed to scan cart item: %w", err)
+		}
+
+		if sizeID.Valid {
+			id := int(sizeID.Int64)
+			item.SizeID = &id
+		}
+		if sizeName.Valid {
+			name := sizeName.String
+			item.SizeName = &name
+		}
+		if variantID.Valid {
+			id := int(variantID.Int64)
+			item.VariantID = &id
+		}
+		if variantName.Valid {
+			name := variantName.String
+			item.VariantName = &name
+		}
+		if image.Valid {
+			img := image.String
+			item.Image = &img
 		}
 
 		item.Subtotal = item.Price * float64(item.Quantity)
@@ -237,18 +265,30 @@ func (r *CartRepository) GetCartItemByID(ctx context.Context, cartItemID int) (*
 		WHERE id = $1
 	`
 
+	var sizeID sql.NullInt64
+	var variantID sql.NullInt64
+
 	err := r.db.QueryRow(ctx, query, cartItemID).Scan(
 		&cart.ID,
 		&cart.CustomerID,
 		&cart.ProductID,
-		&cart.SizeID,
-		&cart.VariantID,
+		&sizeID,
+		&variantID,
 		&cart.Quantity,
 		&cart.CreatedAt,
 	)
 
 	if err != nil {
 		return nil, fmt.Errorf("failed to get cart item: %w", err)
+	}
+
+	if sizeID.Valid {
+		id := int(sizeID.Int64)
+		cart.SizeID = &id
+	}
+	if variantID.Valid {
+		id := int(variantID.Int64)
+		cart.VariantID = &id
 	}
 
 	return &cart, nil

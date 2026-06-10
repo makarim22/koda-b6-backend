@@ -38,7 +38,7 @@ func (h *VariantHandler) GetVariantsByProductID(c *gin.Context) {
 	}
 
 	ctx := c.Request.Context()
-	fmt.Println("productID:", productID)
+	fmt.Printf("[VariantHandler] Fetching variants for productID: %d\n", productID)
 	variants, err := h.service.GetVariantsByProductID(ctx, productID)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
@@ -52,6 +52,7 @@ func (h *VariantHandler) GetVariantsByProductID(c *gin.Context) {
 		variants = []models.Variant{}
 	}
 
+	fmt.Printf("[VariantHandler] Returning %d variants\n", len(variants))
 	c.JSON(http.StatusOK, gin.H{
 		"data": variants,
 	})

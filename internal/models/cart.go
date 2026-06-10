@@ -20,9 +20,9 @@ type CartItem struct {
 	Quantity    int       `json:"quantity"`
 	Subtotal    float64   `json:"subtotal"`
 	SizeID      *int      `json:"size_id,omitempty"`
-	SizeName    string    `json:"size_name,omitempty"`
+	SizeName    *string   `json:"size_name,omitempty"`
 	VariantID   *int      `json:"variant_id,omitempty"`
-	VariantName string    `json:"variant_name,omitempty"`
+	VariantName *string   `json:"variant_name,omitempty"`
 	Image       *string   `json:"image,omitempty"`
 	CreatedAt   time.Time `json:"created_at"`
 }
