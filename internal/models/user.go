@@ -9,7 +9,17 @@ type User struct {
 	Email    string  `json:"email" db:"email"`
 	Password string  `json:"password" db:"password"`
 	Role     string    `db:"role"` 
-	Phone    *string `json:"phone" db:"phone"`
+	Phone    *string   `json:"phone" db:"phone"`
+	PointsBalance int  `json:"points_balance" db:"points_balance"`
+}
+
+type PointLedger struct {
+	ID          int       `json:"id" db:"id"`
+	UserID      int       `json:"user_id" db:"user_id"`
+	OrderID     *int      `json:"order_id" db:"order_id"`
+	Points      int       `json:"points" db:"points"`
+	Description string    `json:"description" db:"description"`
+	CreatedAt   time.Time `json:"created_at" db:"created_at"`
 }
 
 
@@ -62,10 +72,11 @@ type AuthResponse struct {
 }
 
 type UserResponse struct {
-	ID    int    `json:"id"`
-	Name  string `json:"name"`
-	Email string `json:"email"`
-	Role  string `json:"role"`
+	ID            int    `json:"id"`
+	Name          string `json:"name"`
+	Email         string `json:"email"`
+	Role          string `json:"role"`
+	PointsBalance int    `json:"points_balance"`
 }
 
 const (

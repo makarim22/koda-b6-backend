@@ -12,6 +12,7 @@ type Order struct {
 	Status         string    `db:"status" json:"status"`
 	VoucherID      *int      `db:"voucher_id" json:"voucher_id,omitempty"`
 	DiscountAmount float64   `db:"discount_amount" json:"discount_amount"`
+	PointsUsed     int       `db:"points_used" json:"points_used"`
 	CreatedAt      time.Time `db:"created_at" json:"created_at"`
 }
 
@@ -33,6 +34,7 @@ type CreateOrderRequest struct {
 	DeliveryFee float64 `json:"delivery_fee" binding:"gte=0"`
 	Tax         float64 `json:"tax" binding:"gte=0"`
 	VoucherCode string  `json:"voucher_code,omitempty"`
+	PointsToUse int     `json:"points_to_use,omitempty" binding:"gte=0"`
 }
 
 type OrderResponse struct {
@@ -43,10 +45,11 @@ type OrderResponse struct {
 	Tax         float64               `json:"tax"`
 	DeliveryFee    float64               `json:"delivery_fee"`
 	DiscountAmount float64               `json:"discount_amount"`
+	PointsUsed     int                   `json:"points_used"`
 	Total          float64               `json:"total"`
 	Status         string                `json:"status"`
 	Items          []OrderDetailResponse `json:"items"`
-	CreatedAt   time.Time             `json:"created_at"`
+	CreatedAt      time.Time             `json:"created_at"`
 }
 
 type OrderDetailResponse struct {

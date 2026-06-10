@@ -100,6 +100,11 @@ type Container struct {
 	wishlistRepo    *repository.WishlistRepository
 	wishlistService *service.WishlistService
 	wishlistHandler *handlers.WishlistHandler
+
+	//points
+	pointRepo    repository.PointRepository
+	pointService service.PointService
+	pointHandler *handlers.PointHandler
 }
 
 func NewContainer(db *pgxpool.Pool) (*Container, error) {
@@ -150,9 +155,14 @@ func (c *Container) initDependencies() {
 	c.wishlistService = service.NewWishlistService(c.wishlistRepo)
 	c.wishlistHandler = handlers.NewWishlistHandler(c.wishlistService)
 
+	//points
+	c.pointRepo = repository.NewPointRepository(c.db)
+	c.pointService = service.NewPointService(c.pointRepo)
+	c.pointHandler = handlers.NewPointHandler(c.pointService)
+
 	//order
 	c.orderRepo = repository.NewOrderRepository(c.db)
-	c.orderService = service.NewOrderService(c.orderRepo, c.productRepo, c.voucherService)
+	c.orderService = service.NewOrderService(c.orderRepo, c.productRepo, c.voucherService, c.pointService)
 	c.orderHandler = handlers.NewOrderHandler(c.orderService)
 
 	//cart
@@ -283,3 +293,7 @@ func (c *Container) ProductImageHandler() *handlers.ProductImageHandler { return
 func (c *Container) VoucherHandler() *handlers.VoucherHandler { return c.voucherHandler }
 
 func (c *Container) WishlistHandler() *handlers.WishlistHandler { return c.wishlistHandler }
+
+func (c *Container) PointService() service.PointService { return c.pointService }
+
+func (c *Container) PointHandler() *handlers.PointHandler { return c.pointHandler }

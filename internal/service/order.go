@@ -11,13 +11,15 @@ type OrderService struct {
 	orderRepo      *repository.OrderRepository
 	productRepo    *repository.ProductRepository
 	voucherService *VoucherService
+	pointService   PointService
 }
 
-func NewOrderService(orderRepo *repository.OrderRepository, productRepo *repository.ProductRepository, voucherService *VoucherService) *OrderService {
+func NewOrderService(orderRepo *repository.OrderRepository, productRepo *repository.ProductRepository, voucherService *VoucherService, pointService PointService) *OrderService {
 	return &OrderService{
 		orderRepo:      orderRepo,
 		productRepo:    productRepo,
 		voucherService: voucherService,
+		pointService:   pointService,
 	}
 }
 
@@ -49,6 +51,30 @@ func (s *OrderService) CreateOrder(ctx context.Context, customerID int, req mode
 		discountAmount = discAmt
 	}
 
+	// Calculate Point Usage
+	// 1 Point = 10 IDR
+	pointDiscount := 0.0
+	pointsUsed := 0
+	if req.PointsToUse > 0 {
+		balance, err := s.pointService.GetUserBalance(ctx, customerID)
+		if err != nil {
+			return nil, fmt.Errorf("failed to get user point balance: %w", err)
+		}
+		if balance < req.PointsToUse {
+			return nil, fmt.Errorf("insufficient points balance")
+		}
+		
+		pointsUsed = req.PointsToUse
+		pointDiscount = float64(pointsUsed * 10)
+		
+		// Ensure discount doesn't exceed subtotal
+		if pointDiscount > subtotal-discountAmount {
+			pointDiscount = subtotal - discountAmount
+			pointsUsed = int(pointDiscount / 10)
+		}
+		discountAmount += pointDiscount
+	}
+
 	order := &models.Order{
 		CustomerID:     customerID,
 		Subtotal:       subtotal,
@@ -57,6 +83,7 @@ func (s *OrderService) CreateOrder(ctx context.Context, customerID int, req mode
 		Status:         "pending",
 		VoucherID:      voucherID,
 		DiscountAmount: discountAmount,
+		PointsUsed:     pointsUsed,
 	}
 
 	orderID, err := s.orderRepo.CreateOrder(ctx, order)
@@ -68,6 +95,14 @@ func (s *OrderService) CreateOrder(ctx context.Context, customerID int, req mode
 		if err := s.voucherService.voucherRepo.IncrementUsage(ctx, *voucherID); err != nil {
 			// Intentionally not failing the order if usage increment fails
 			fmt.Printf("failed to increment voucher usage: %v\n", err)
+		}
+	}
+
+	if pointsUsed > 0 {
+		err := s.pointService.DeductPoints(ctx, nil, customerID, &orderID, pointsUsed, "Used points for order checkout")
+		if err != nil {
+			fmt.Printf("failed to deduct points: %v\n", err)
+			// in a real prod system, this should be inside a TX
 		}
 	}
 
@@ -194,7 +229,23 @@ func (s *OrderService) UpdateOrderStatus(ctx context.Context, orderID int, custo
 		}
 	}
 
-	return s.orderRepo.UpdateOrderStatus(ctx, orderID, newStatus)
+	err = s.orderRepo.UpdateOrderStatus(ctx, orderID, newStatus)
+	if err != nil {
+		return err
+	}
+
+	// Earn points if the order becomes paid/completed/delivered
+	// Just an example: 1 point for every 1000 IDR subtotal
+	if newStatus == "paid" || newStatus == "completed" || newStatus == "delivered" {
+		if order.Status != "paid" && order.Status != "completed" && order.Status != "delivered" {
+			earnedPoints := int(order.Subtotal / 1000)
+			if earnedPoints > 0 {
+				_ = s.pointService.AddPoints(ctx, nil, customerID, &orderID, earnedPoints, "Earned points from order completion")
+			}
+		}
+	}
+
+	return nil
 }
 
 func (s *OrderService) DeleteOrder(ctx context.Context, orderID int, customerID int) error {

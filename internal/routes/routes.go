@@ -26,6 +26,7 @@ func SetupRoutes(router *gin.Engine, container *di.Container) {
 	productImageHandler := container.ProductImageHandler()
 	voucherHandler := container.VoucherHandler()
 	wishlistHandler := container.WishlistHandler()
+	pointHandler := container.PointHandler()
 
 	api := router.Group("/api")
 	{
@@ -36,6 +37,12 @@ func SetupRoutes(router *gin.Engine, container *di.Container) {
 			users.POST("", userHandler.CreateUser)
 			users.PUT("/:id", userHandler.UpdateUser)
 			users.DELETE("/:id", userHandler.DeleteUser)
+			
+			authUsers := users.Group("")
+			authUsers.Use(middleware.AuthMiddleware())
+			{
+				authUsers.GET("/points", pointHandler.GetUserPoints)
+			}
 		}
 	}
 	{
