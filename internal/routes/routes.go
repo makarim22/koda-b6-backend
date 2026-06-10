@@ -25,6 +25,7 @@ func SetupRoutes(router *gin.Engine, container *di.Container) {
 	productDiscountHandler := container.ProductDiscountHandler()
 	productImageHandler := container.ProductImageHandler()
 	voucherHandler := container.VoucherHandler()
+	wishlistHandler := container.WishlistHandler()
 
 	api := router.Group("/api")
 	{
@@ -135,6 +136,15 @@ func SetupRoutes(router *gin.Engine, container *di.Container) {
 	vouchers.Use(middleware.AuthMiddleware())
 	{
 		vouchers.POST("/validate", voucherHandler.ValidateVoucher)
+	}
+
+	wishlists := api.Group("/wishlists")
+	wishlists.Use(middleware.AuthMiddleware())
+	{
+		wishlists.POST("", wishlistHandler.AddToWishlist)
+		wishlists.DELETE("/:product_id", wishlistHandler.RemoveFromWishlist)
+		wishlists.GET("", wishlistHandler.GetUserWishlist)
+		wishlists.GET("/:product_id/status", wishlistHandler.CheckStatus)
 	}
 
 	public := router.Group("/public")
