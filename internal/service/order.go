@@ -274,3 +274,11 @@ func (s *OrderService) GetDailySales(ctx context.Context) ([]models.DailySalesDa
     }
     return result, nil
 }
+
+func (s *OrderService) GetOrderStats(ctx context.Context) (map[string]int, error) {
+	stats, err := s.orderRepo.GetOrderStats(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("failed to retrieve order stats: %w", err)
+	}
+	return stats, nil
+}

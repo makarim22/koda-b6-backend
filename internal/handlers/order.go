@@ -256,3 +256,22 @@ func (h *OrderHandler) GetDailySales(c *gin.Context) {
 		Data:    result,
 	})
 }
+
+func (h *OrderHandler) GetOrderStats(c *gin.Context) {
+	ctx := c.Request.Context()
+
+	stats, err := h.orderService.GetOrderStats(ctx)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, models.ApiResponse{
+			Success: false,
+			Message: err.Error(),
+		})
+		return
+	}
+
+	c.JSON(http.StatusOK, models.ApiResponse{
+		Success: true,
+		Message: "Order stats retrieved successfully",
+		Data:    stats,
+	})
+}

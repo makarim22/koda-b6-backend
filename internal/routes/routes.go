@@ -171,6 +171,7 @@ func SetupRoutes(router *gin.Engine, container *di.Container) {
 	public := router.Group("/public")
 	{
       public.GET("/daily-sales", orderHandler.GetDailySales)
+      public.GET("/order-stats", orderHandler.GetOrderStats)
 	}
 	
 

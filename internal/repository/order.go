@@ -302,3 +302,34 @@ func (r *OrderRepository) GetDailySalesData(ctx context.Context) ([]models.Daily
 
 	return salesData, nil
 }
+
+func (r *OrderRepository) GetOrderStats(ctx context.Context) (map[string]int, error) {
+	query := `
+		SELECT status, COUNT(*) 
+		FROM orders 
+		GROUP BY status
+	`
+
+	rows, err := r.db.Query(ctx, query)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	stats := make(map[string]int)
+	for rows.Next() {
+		var status string
+		var count int
+		if err := rows.Scan(&status, &count); err != nil {
+			return nil, err
+		}
+		stats[status] = count
+	}
+
+	if err = rows.Err(); err != nil {
+		return nil, err
+	}
+
+	return stats, nil
+}
+
