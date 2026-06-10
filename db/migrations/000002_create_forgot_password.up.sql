@@ -5,4 +5,4 @@ CREATE TABLE IF NOT EXISTS forgot_password(
     expired_at timestamp default now() + interval '15 minutes',
     created_at timestamp default now(),
     updated_at timestamp default now()
-)
+);

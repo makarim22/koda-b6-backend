@@ -1,10 +1,10 @@
 
 GET http://localhost:8888/api/users HTTP/1.1
-content-type: application/application/json
+content-type: application/json
 
 ###
 POST http://localhost:8888/api/v1/users HTTP/1.1
-content-type: application/application/json
+content-type: application/json
 
 {
     "name": "urif",
@@ -19,7 +19,7 @@ POST http://localhost:8888/api/auth/login HTTP/1.1
 content-type: application/application/json
 
 {
-    "email": "sakura@gmail.com",
+    "email": "admin3@coffeeshop.id",
     "password": "secret22"
 }
 
@@ -29,10 +29,12 @@ POST http://localhost:8888/api/auth/register HTTP/1.1
 content-type: application/json
 
 {
-    "name": "urif",
-    "email": "urif@gmail.com",
-    "password": "secret22"
+    "name": "admin3",
+    "email": "admin3@coffeeshop.id",
+    "password": "secret22",
+    "role": "admin"
 }
+
 
 ###
 POST http://localhost:8888/api/auth/forgot-password HTTP/1.1
@@ -59,7 +61,7 @@ DELETE http://localhost:8888/api/v1/users/2 HTTP/1.1
 
 ###
 GET http://localhost:8888/api/products HTTP/1.1
-content-type: application/application/json
+content-type: application/json
 
 ###
 GET http://localhost:8888/api/products/35/variants HTTP/1.1
@@ -71,7 +73,7 @@ content-type: application/json
 
 ###
 GET http://localhost:8888/api/products/1/discounts HTTP/1.1
-content-type: application/application/json
+content-type: application/json
 
 ###
 GET http://localhost:8888/api/products/1/images HTTP/1.1
@@ -79,11 +81,11 @@ content-type: application/json
 
 ###
 GET http://localhost:8888/api/products/recommended-products HTTP/1.1
-content-type: application/application/json
+content-type: application/json
 
 ###
 GET http://localhost:8888/api/products HTTP/1.1
-content-type: application/application/
+content-type: application/json
 
 
 ###
@@ -105,9 +107,9 @@ Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjo1MywiZ
 
 
 ###
-GET http://localhost:8888/api/cart HTTP/1.1
+GET http://localhost:8888/cart HTTP/1.1
 content-type: application/json
-Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjo1MywiZW1haWwiOiJ1cmlmQGdtYWlsLmNvbSIsImV4cCI6MTc3NTU5MDY3OCwiaWF0IjoxNzc1NTA0Mjc4fQ.Xd1wIBwxQ_yjVAI5SgauZAGfjQqSEgrE0mW1GyELCbI
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjo1NCwiZW1haWwiOiJzYWt1cmFAZ21haWwuY29tIiwiZXhwIjoxNzc2MjQ4MTk0LCJpYXQiOjE3NzYxNjE3OTR9.lSy1ZqST21mQv7kEtNe3RRwpo5bDgbg6PrU5LvSg6d4
 
 ###
 POST http://localhost:8888/api/orders HTTP/1.1
@@ -124,7 +126,86 @@ GET http://localhost:8888/api/products/1/images HTTP/1.1
 content-type: application/application/
 
 ###
-GET http://localhost:8888/api/orders HTTP/1.1
+GET http://localhost:8888/api/orders/218/details HTTP/1.1
 content-type: application/json
-Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjo1NCwiZW1haWwiOiJzYWt1cmFAZ21haWwuY29tIiwiZXhwIjoxNzc1OTAxMTk3LCJpYXQiOjE3NzU4MTQ3OTd9.Hm6w5iak1tpVhni-T6QmGvXZkDFP33TBHe0XOksnn34
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjo1NCwiZW1haWwiOiJzYWt1cmFAZ21haWwuY29tIiwiZXhwIjoxNzc2MjUwOTA5LCJpYXQiOjE3NzYxNjQ1MDl9.k0rp34Pwffm8cIqg2rcs4h9gsJC69DlXYJYaGz8FbD0
 
+###
+GET http://localhost:8888/api/orders/4 HTTP/1.1
+content-type: application/json
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjo1NCwiZW1haWwiOiJzYWt1cmFAZ21haWwuY29tIiwiZXhwIjoxNzc2MjQ5MjU5LCJpYXQiOjE3NzYxNjI4NTl9.po4NnudznOUC3RyotMm-wokls8rNEq9QLTPaRybfee8
+
+
+###
+GET http://localhost:8888/api/users HTTP/1.1
+content-type: application/json
+
+###
+GET http://localhost:3002/api/products HTTP/1.1
+content-type: application/json
+
+
+###
+GET http://localhost:8888/api/products/recommended-products HTTP/1.1
+content-type: application/json
+
+###
+GET http://localhost:8888/api/products/top-products HTTP/1.1
+content-type: application/json
+
+###
+POST http://localhost:8888/api/variants HTTP/1.1
+content-type: application/json
+
+{
+  "name": "Matcha",
+  "additional_price": 5000
+}
+
+###
+POST http://localhost:8888/api/sizes HTTP/1.1
+content-type: application/json
+
+{
+  "name": "Jumbo",
+  "additional_price": 10000
+}
+
+###
+GET http://localhost:8888/api/variants HTTP/1.1
+content-type: application/json
+
+###
+###
+GET http://localhost:8888/api/sizes HTTP/1.1
+content-type: application/json
+
+
+###
+POST  http://localhost:8888/api/products HTTP/1.1
+content-type: application/json
+
+{
+  "product_name": "Nike Air Max",
+  "description": "Premium running shoes with cushioning",
+  "base_price": 12000,
+  "stock": 50,
+  "variants": [
+    {
+      "id": 1
+    }
+  ],
+  "sizes": [
+    {
+      "id": 1
+    }
+  ]
+}
+
+###
+GET http://localhost:8888/public/daily-sales HTTP/1.1
+content-type: application/json
+
+###
+GET http://localhost:8888/api/products/1/images HTTP/1.1
+content-type: application/json

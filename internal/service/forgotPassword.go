@@ -73,7 +73,7 @@ func (s *ForgotPasswordService) ResetPassword(ctx context.Context, req models.Re
 	hashedPassword, err := lib.HashPassword(req.NewPassword)
 	fmt.Println("hashedPassword", hashedPassword)
 	if err != nil {
-		fmt.Errorf("failed to hash password: %w", err)
+		return fmt.Errorf("failed to hash password: %w", err)
 	}
 
 	if err := s.userRepo.UpdatePassword(ctx, hashedPassword, user.ID); err != nil {

@@ -14,7 +14,7 @@ services:
       - DB_PORT=5432
       - DB_USER=postgres
       - DB_PASSWORD=password
-      - DB_NAME=coffeeshop
+      - DB_NAME=coffee_shop
       - DATABASE_URL=postgresql://postgres:password@backend-js-postgres-1:5432/coffeeshop?sslmode=disable
       
       # Redis configuration - UPDATED to match Node.js setup
