@@ -24,7 +24,10 @@ func NewReviewsRepository(db *pgxpool.Pool) *ReviewsRepository {
 
 func (r *ReviewsRepository) GetAll(ctx context.Context) ([]models.ReviewsResponse, error) {
 	rows, err := r.db.Query(ctx,
-		`SELECT ur.id, ur.user_id, u.full_name, u.email, ur.product_id, p.product_name, ur.order_id, ur.message, ur.rating FROM user_review ur join products p on p.id = ur.product_id join users u on u.id = ur.user_id`)
+		`SELECT ur.id, ur.user_id, u.full_name, u.email, ur.product_id, p.product_name, ur.order_id, ur.message, ur.rating, ur.created_at 
+		FROM user_review ur 
+		JOIN products p ON p.id = ur.product_id 
+		JOIN users u ON u.id = ur.user_id`)
 	if err != nil {
 		return nil, err
 	}
@@ -40,7 +43,7 @@ func (r *ReviewsRepository) GetAll(ctx context.Context) ([]models.ReviewsRespons
 
 func (r *ReviewsRepository) GetById(ctx context.Context, id int) (*models.ReviewsResponse, error) {
 	row, err := r.db.Query(ctx,
-		`SELECT ur.id, ur.user_id, u.full_name, u.email, ur.product_id, p.product_name, ur.order_id, ur.message, ur.rating 
+		`SELECT ur.id, ur.user_id, u.full_name, u.email, ur.product_id, p.product_name, ur.order_id, ur.message, ur.rating, ur.created_at 
 		FROM user_review ur 
 		JOIN products p ON p.id = ur.product_id 
 		JOIN users u ON u.id = ur.user_id 
@@ -101,4 +104,64 @@ func (r *ReviewsRepository) GetAverageRating(ctx context.Context, productID int)
 		return 0, nil
 	}
 	return rating.Float64, nil
+}
+
+func (r *ReviewsRepository) GetByProductId(ctx context.Context, productID int, limit, offset int) ([]models.ReviewsResponse, error) {
+	rows, err := r.db.Query(ctx,
+		`SELECT ur.id, ur.user_id, u.full_name, u.email, ur.product_id, p.product_name, ur.order_id, ur.message, ur.rating, ur.created_at 
+		FROM user_review ur 
+		JOIN products p ON p.id = ur.product_id 
+		JOIN users u ON u.id = ur.user_id 
+		WHERE ur.product_id = $1 
+		ORDER BY ur.created_at DESC 
+		LIMIT $2 OFFSET $3`, productID, limit, offset)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	reviews, err := pgx.CollectRows(rows, pgx.RowToStructByName[models.ReviewsResponse])
+	if err != nil {
+		return nil, err
+	}
+	return reviews, nil
+}
+
+func (r *ReviewsRepository) GetRatingSummary(ctx context.Context, productID int) (*models.RatingSummary, error) {
+	query := `
+		SELECT COALESCE(AVG(rating), 0), COUNT(id)
+		FROM user_review
+		WHERE product_id = $1
+	`
+	var summary models.RatingSummary
+	err := r.db.QueryRow(ctx, query, productID).Scan(&summary.AverageRating, &summary.TotalReviews)
+	if err != nil {
+		return nil, err
+	}
+	return &summary, nil
+}
+
+func (r *ReviewsRepository) GetEligibleOrderForReview(ctx context.Context, userID, productID int) (int, error) {
+	query := `
+		SELECT o.id 
+		FROM orders o
+		JOIN order_detail od ON o.id = od.order_id
+		WHERE o.customer_id = $1 
+		  AND od.product_id = $2 
+		  AND o.status IN ('paid', 'completed', 'delivered')
+		  AND NOT EXISTS (
+			  SELECT 1 FROM user_review ur 
+			  WHERE ur.order_id = o.id AND ur.product_id = od.product_id
+		  )
+		LIMIT 1
+	`
+	var orderID int
+	err := r.db.QueryRow(ctx, query, userID, productID).Scan(&orderID)
+	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return 0, nil // 0 means no eligible order
+		}
+		return 0, err
+	}
+	return orderID, nil
 }

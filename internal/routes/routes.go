@@ -55,6 +55,15 @@ func SetupRoutes(router *gin.Engine, container *di.Container) {
 			products.POST("/:id/images/multiple", productImageHandler.UploadMultipleImages)
 			products.PATCH("/:id/images/:imageId/set-primary", productImageHandler.SetPrimaryImage)
 			products.DELETE("/:id/images/:imageId", productImageHandler.DeleteImage)
+			products.GET("/:id/reviews", reviewsHandler.GetByProductId)
+			products.GET("/:id/rating", reviewsHandler.GetRatingSummary)
+			
+			// Protected product routes
+			authProducts := products.Group("")
+			authProducts.Use(middleware.AuthMiddleware())
+			{
+				authProducts.GET("/:id/reviews/eligible", reviewsHandler.CheckEligible)
+			}
 		}
 	}
 	{
@@ -100,8 +109,13 @@ func SetupRoutes(router *gin.Engine, container *di.Container) {
 	{
 		reviewsGroup.GET("", reviewsHandler.GetAllReviews)
 		reviewsGroup.GET("/:id", reviewsHandler.GetReview)
-		reviewsGroup.POST("", reviewsHandler.CreateReview)
-		reviewsGroup.PUT("/:id", reviewsHandler.UpdateReview)
+		
+		authReviews := reviewsGroup.Group("")
+		authReviews.Use(middleware.AuthMiddleware())
+		{
+			authReviews.POST("", reviewsHandler.CreateReview)
+			authReviews.PUT("/:id", reviewsHandler.UpdateReview)
+		}
 	}
 	productCategories := api.Group("/product-categories")
 	{

@@ -18,9 +18,15 @@ type ReviewsResponse struct {
 	Email       string `json:"email" db:"email"`
 	ProductId   int    `json:"product_id" db:"product_id"`
 	ProductName string `json:"product_name" db:"product_name"`
-	OrderId     int    `json:"order_id" db:"order_id"`
-	Message     string `json:"message" db:"message"`
-	Rating      int    `json:"rating" db:"rating"`
+	OrderId     int       `json:"order_id" db:"order_id"`
+	Message     string    `json:"message" db:"message"`
+	Rating      int       `json:"rating" db:"rating"`
+	CreatedAt   time.Time `json:"created_at" db:"created_at"`
+}
+
+type RatingSummary struct {
+	AverageRating float64 `json:"average_rating"`
+	TotalReviews  int     `json:"total_reviews"`
 }
 
 type ReviewsRequest struct {

@@ -44,27 +44,24 @@ func (s *ReviewsService) GetById(ctx context.Context, id int) (models.ReviewsRes
 }
 
 func (s *ReviewsService) CreateReview(ctx context.Context, review *models.ReviewsRequest) error {
-	if review.Message == "" || review.Rating <= 0 {
-		return errors.New("review message cannot be empty and rating must be greater than zero")
+	if review.Message == "" || review.Rating <= 0 || review.Rating > 5 {
+		return errors.New("review message cannot be empty and rating must be between 1 and 5")
 	}
 
-	existingOrder, _ := s.orderRepo.GetOrderByID(ctx, review.OrderId)
-	if existingOrder == nil {
-		return errors.New("order with this id IS NOT exists")
-	}
 	existingProduct, _ := s.productRepo.GetByID(ctx, review.ProductId)
 	if existingProduct == nil {
 		return errors.New("product with this id IS NOT exists")
 	}
 
-	existingReview, err := s.reviewsRepo.GetByUserProductOrder(ctx, review.UserId, review.ProductId, review.OrderId)
+	// Find an eligible order for this user and product
+	orderID, err := s.reviewsRepo.GetEligibleOrderForReview(ctx, review.UserId, review.ProductId)
 	if err != nil {
-		return fmt.Errorf("failed to check exist"+
-			"ing review: %w", err)
+		return fmt.Errorf("error checking eligibility: %w", err)
 	}
-	if existingReview != nil {
-		return errors.New("review already exists for this user, product, and order combination")
+	if orderID == 0 {
+		return errors.New("user is not eligible to review this product")
 	}
+	review.OrderId = orderID
 
 	err = s.reviewsRepo.CreateReview(ctx, review)
 	if err != nil {
@@ -86,4 +83,37 @@ func (s *ReviewsService) UpdateReview(ctx context.Context, review *models.Review
 		return errors.New("failed to update review")
 	}
 	return nil
+}
+
+func (s *ReviewsService) GetByProductId(ctx context.Context, productID int, limit, offset int) ([]models.ReviewsResponse, error) {
+	if limit <= 0 {
+		limit = 10
+	}
+	if offset < 0 {
+		offset = 0
+	}
+	reviews, err := s.reviewsRepo.GetByProductId(ctx, productID, limit, offset)
+	if err != nil {
+		return nil, errors.New("failed to retrieve reviews by product id")
+	}
+	if len(reviews) == 0 {
+		return []models.ReviewsResponse{}, nil
+	}
+	return reviews, nil
+}
+
+func (s *ReviewsService) GetRatingSummary(ctx context.Context, productID int) (*models.RatingSummary, error) {
+	summary, err := s.reviewsRepo.GetRatingSummary(ctx, productID)
+	if err != nil {
+		return nil, errors.New("failed to retrieve rating summary")
+	}
+	return summary, nil
+}
+
+func (s *ReviewsService) CheckEligible(ctx context.Context, userID, productID int) (bool, error) {
+	orderID, err := s.reviewsRepo.GetEligibleOrderForReview(ctx, userID, productID)
+	if err != nil {
+		return false, err
+	}
+	return orderID != 0, nil
 }
