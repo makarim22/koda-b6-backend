@@ -91,6 +91,7 @@ func SetupRoutes(router *gin.Engine, container *di.Container) {
 			orders.POST("", orderHandler.CreateOrder)
 			orders.GET("", orderHandler.GetUserOrders)
 			orders.GET("/:id", orderHandler.GetOrder)
+			orders.GET("/:id/tracking", orderHandler.GetOrderTracking)
 			orders.PUT("/:id", orderHandler.UpdateOrderStatus)
 			orders.DELETE("/:id", orderHandler.DeleteOrder)
 

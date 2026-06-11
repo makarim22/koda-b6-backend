@@ -65,6 +65,14 @@ type OrderDetailResponse struct {
 	Image       *string   `json:"image,omitempty"`
 }
 
+type OrderTracking struct {
+	ID          int       `db:"id" json:"id"`
+	OrderID     int       `db:"order_id" json:"order_id"`
+	Status      string    `db:"status" json:"status"`
+	Description *string   `db:"description" json:"description,omitempty"`
+	CreatedAt   time.Time `db:"created_at" json:"created_at"`
+}
+
 type UpdateOrderStatusRequest struct {
 	Status string `json:"status" binding:"required,oneof=pending processing shipped delivered cancelled"`
 }

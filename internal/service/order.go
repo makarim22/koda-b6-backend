@@ -12,14 +12,16 @@ type OrderService struct {
 	productRepo    *repository.ProductRepository
 	voucherService *VoucherService
 	pointService   PointService
+	trackingRepo   repository.TrackingRepository
 }
 
-func NewOrderService(orderRepo *repository.OrderRepository, productRepo *repository.ProductRepository, voucherService *VoucherService, pointService PointService) *OrderService {
+func NewOrderService(orderRepo *repository.OrderRepository, productRepo *repository.ProductRepository, voucherService *VoucherService, pointService PointService, trackingRepo repository.TrackingRepository) *OrderService {
 	return &OrderService{
 		orderRepo:      orderRepo,
 		productRepo:    productRepo,
 		voucherService: voucherService,
 		pointService:   pointService,
+		trackingRepo:   trackingRepo,
 	}
 }
 
@@ -109,6 +111,10 @@ func (s *OrderService) CreateOrder(ctx context.Context, customerID int, req mode
 	if err := s.orderRepo.CreateOrderDetails(ctx, orderID, cartItems); err != nil {
 		return nil, fmt.Errorf("failed to create order details: %w", err)
 	}
+
+	// Insert tracking log
+	desc := "Order has been placed"
+	_ = s.trackingRepo.InsertTracking(ctx, nil, orderID, "pending", &desc)
 
 	if err := s.orderRepo.ClearCart(ctx, customerID); err != nil {
 		return nil, fmt.Errorf("failed to clear cart: %w", err)
@@ -234,6 +240,10 @@ func (s *OrderService) UpdateOrderStatus(ctx context.Context, orderID int, custo
 		return err
 	}
 
+	// Insert tracking log
+	desc := fmt.Sprintf("Order status updated to %s", newStatus)
+	_ = s.trackingRepo.InsertTracking(ctx, nil, orderID, newStatus, &desc)
+
 	// Earn points if the order becomes paid/completed/delivered
 	// Just an example: 1 point for every 1000 IDR subtotal
 	if newStatus == "paid" || newStatus == "completed" || newStatus == "delivered" {
@@ -246,6 +256,19 @@ func (s *OrderService) UpdateOrderStatus(ctx context.Context, orderID int, custo
 	}
 
 	return nil
+}
+
+func (s *OrderService) GetOrderTracking(ctx context.Context, orderID int, customerID int) ([]models.OrderTracking, error) {
+	order, err := s.orderRepo.GetOrderByID(ctx, orderID)
+	if err != nil {
+		return nil, fmt.Errorf("order not found: %w", err)
+	}
+
+	if order.CustomerID != customerID {
+		return nil, fmt.Errorf("unauthorized access to order")
+	}
+
+	return s.trackingRepo.GetTrackingByOrderID(ctx, orderID)
 }
 
 func (s *OrderService) DeleteOrder(ctx context.Context, orderID int, customerID int) error {

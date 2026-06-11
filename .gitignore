@@ -1,2 +1,7 @@
 .env
 .idea/
+*.exe
+*.json
+test_api.go
+vouchers.sql
+wishlists.sql

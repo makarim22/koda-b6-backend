@@ -238,6 +238,59 @@ func (h *OrderHandler) DeleteOrder(c *gin.Context) {
 	})
 }
 
+func (h *OrderHandler) GetOrderTracking(c *gin.Context) {
+	orderID, err := strconv.Atoi(c.Param("id"))
+	if err != nil {
+		c.JSON(http.StatusBadRequest, models.ApiResponse{
+			Success: false,
+			Message: "Invalid order ID",
+		})
+		return
+	}
+
+	customerID, exists := c.Get("user_id")
+	if !exists {
+		c.JSON(http.StatusUnauthorized, models.ApiResponse{
+			Success: false,
+			Message: "Unauthorized",
+		})
+		return
+	}
+
+	// Assuming customerID is of type int or float64 from JWT
+	var custID int
+	switch v := customerID.(type) {
+	case int:
+		custID = v
+	case float64:
+		custID = int(v)
+	default:
+		c.JSON(http.StatusUnauthorized, models.ApiResponse{
+			Success: false,
+			Message: "Invalid user_id type",
+		})
+		return
+	}
+
+	ctx := c.Request.Context()
+
+	tracking, err := h.orderService.GetOrderTracking(ctx, orderID, custID)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, models.ApiResponse{
+			Success: false,
+			Message: err.Error(),
+		})
+		return
+	}
+
+	c.JSON(http.StatusOK, models.ApiResponse{
+		Success: true,
+		Message: "Order tracking retrieved successfully",
+		Data:    tracking,
+	})
+}
+
+
 func (h *OrderHandler) GetDailySales(c *gin.Context) {
 	ctx := c.Request.Context()
 
