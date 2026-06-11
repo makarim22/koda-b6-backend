@@ -1,8 +1,7 @@
 package handlers
 
 import (
-	//defaulterr "errors"
-	//"go/types"
+	"fmt"
 	"koda-b6-backend/internal/errors"
 	"koda-b6-backend/internal/models"
 	"koda-b6-backend/internal/service"
@@ -10,7 +9,6 @@ import (
 	"strconv"
 
 	"github.com/gin-gonic/gin"
-	//"github.com/jackc/pgx/v5"
 )
 
 type PaymentHandler struct {
@@ -143,4 +141,26 @@ func (h *PaymentHandler) Delete(c *gin.Context) {
 	}
 
 	c.Status(http.StatusNoContent)
+}
+
+func (h *PaymentHandler) ProcessMidtransCallback(c *gin.Context) {
+	var req models.MidtransCallbackRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	ctx := c.Request.Context()
+	err := h.service.ProcessMidtransCallback(ctx, req)
+	if err != nil {
+		fmt.Printf("Midtrans Callback Error: %v\n", err)
+		if ve, ok := err.(*errors.ValidationError); ok {
+			c.JSON(http.StatusBadRequest, gin.H{"error": ve.Error()})
+			return
+		}
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to process midtrans callback", "detail": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"status": "ok"})
 }

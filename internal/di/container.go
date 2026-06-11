@@ -166,9 +166,12 @@ func (c *Container) initDependencies() {
 	//tracking
 	c.trackingRepo = repository.NewTrackingRepository(c.db)
 
+	//payment repo
+	c.paymentRepo = repository.NewPaymentRepository(c.db)
+
 	//order
 	c.orderRepo = repository.NewOrderRepository(c.db)
-	c.orderService = service.NewOrderService(c.orderRepo, c.productRepo, c.voucherService, c.pointService, c.trackingRepo)
+	c.orderService = service.NewOrderService(c.orderRepo, c.productRepo, c.paymentRepo, c.voucherService, c.pointService, c.trackingRepo)
 	c.orderHandler = handlers.NewOrderHandler(c.orderService)
 
 	//cart
@@ -191,9 +194,8 @@ func (c *Container) initDependencies() {
 	c.orderDetailService = service.NewOrderDetailService(c.orderDetailRepo, c.orderRepo, c.productRepo)
 	c.orderDetailHandler = handlers.NewOrderDetailHandler(c.orderDetailService)
 
-	//payment
-	c.paymentRepo = repository.NewPaymentRepository(c.db)
-	c.paymentService = service.NewPaymentService(c.paymentRepo, c.orderRepo)
+	//payment service
+	c.paymentService = service.NewPaymentService(c.paymentRepo, c.orderRepo, c.pointService, c.trackingRepo)
 	c.paymentHandler = handlers.NewPaymentHandler(c.paymentService)
 
 	//variant

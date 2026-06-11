@@ -48,6 +48,7 @@ type OrderResponse struct {
 	PointsUsed     int                   `json:"points_used"`
 	Total          float64               `json:"total"`
 	Status         string                `json:"status"`
+	SnapToken      string                `json:"snap_token,omitempty"`
 	Items          []OrderDetailResponse `json:"items"`
 	CreatedAt      time.Time             `json:"created_at"`
 }

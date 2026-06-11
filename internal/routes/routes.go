@@ -137,6 +137,7 @@ func SetupRoutes(router *gin.Engine, container *di.Container) {
 
 	payments := api.Group("/payments")
 	{
+		payments.POST("/midtrans-callback", paymentHandler.ProcessMidtransCallback)
 		payments.POST("", paymentHandler.Create)
 		payments.GET("/:id", paymentHandler.GetByID)
 		payments.PUT("/:id", paymentHandler.UpdateStatus)

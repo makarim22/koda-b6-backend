@@ -23,8 +23,9 @@ services:
       
       # Server configuration
       - SERVER_PORT=8080
-      - JWT_SECRET=7x!A%D*F-JaNdRgUkXp2s5v8y/B?E(H+MbQeShVmYq3t6w9z$C&F)J@NcRfUjXn2r
+      - JWT_SECRET=7x!A%D*F-JaNdRgUkXp2s5v8y/B?E(H+MbQeShVmYq3t6w9z$$C&F)J@NcRfUjXn2r
       - JWT_EXPIRATION=24h
+      - MIDTRANS_SERVER_KEY=${MIDTRANS_SERVER_KEY}
     
     # Note: postgres and redis-cache are external services running in Node.js docker-compose
     # No depends_on needed since we're connecting to external network

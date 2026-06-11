@@ -1,24 +1,31 @@
 package service
 
 import (
+	"bytes"
 	"context"
+	"encoding/base64"
+	"encoding/json"
 	"fmt"
 	"koda-b6-backend/internal/models"
 	"koda-b6-backend/internal/repository"
+	"net/http"
+	"os"
 )
 
 type OrderService struct {
 	orderRepo      *repository.OrderRepository
 	productRepo    *repository.ProductRepository
+	paymentRepo    *repository.PaymentRepository
 	voucherService *VoucherService
 	pointService   PointService
 	trackingRepo   repository.TrackingRepository
 }
 
-func NewOrderService(orderRepo *repository.OrderRepository, productRepo *repository.ProductRepository, voucherService *VoucherService, pointService PointService, trackingRepo repository.TrackingRepository) *OrderService {
+func NewOrderService(orderRepo *repository.OrderRepository, productRepo *repository.ProductRepository, paymentRepo *repository.PaymentRepository, voucherService *VoucherService, pointService PointService, trackingRepo repository.TrackingRepository) *OrderService {
 	return &OrderService{
 		orderRepo:      orderRepo,
 		productRepo:    productRepo,
+		paymentRepo:    paymentRepo,
 		voucherService: voucherService,
 		pointService:   pointService,
 		trackingRepo:   trackingRepo,
@@ -120,7 +127,30 @@ func (s *OrderService) CreateOrder(ctx context.Context, customerID int, req mode
 		return nil, fmt.Errorf("failed to clear cart: %w", err)
 	}
 
-	return s.GetOrder(ctx, orderID, customerID)
+	// Create a pending payment record
+	payment := &models.Payment{
+		OrderID: orderID,
+		Amount:  subtotal + req.Tax + req.DeliveryFee - discountAmount,
+		Method:  "credit_card", // default or placeholder for Snap
+		Status:  "pending",
+	}
+	if err := s.paymentRepo.Create(ctx, payment); err != nil {
+		fmt.Printf("failed to create pending payment record: %v\n", err)
+	}
+
+	// Generate Midtrans Snap Token
+	snapToken, err := s.GenerateSnapToken(orderID, payment.Amount)
+	if err != nil {
+		fmt.Printf("failed to generate snap token: %v\n", err)
+	}
+
+	orderResp, err := s.GetOrder(ctx, orderID, customerID)
+	if err != nil {
+		return nil, err
+	}
+	orderResp.SnapToken = snapToken
+
+	return orderResp, nil
 }
 
 func (s *OrderService) GetOrder(ctx context.Context, orderID int, customerID int) (*models.OrderResponse, error) {
@@ -304,4 +334,57 @@ func (s *OrderService) GetOrderStats(ctx context.Context) (map[string]int, error
 		return nil, fmt.Errorf("failed to retrieve order stats: %w", err)
 	}
 	return stats, nil
+}
+
+func (s *OrderService) GenerateSnapToken(orderID int, grossAmount float64) (string, error) {
+	serverKey := os.Getenv("MIDTRANS_SERVER_KEY")
+	if serverKey == "" {
+		serverKey = "test-server-key"
+	}
+
+	url := "https://app.sandbox.midtrans.com/snap/v1/transactions"
+
+	payload := map[string]interface{}{
+		"transaction_details": map[string]interface{}{
+			"order_id":     fmt.Sprintf("%d", orderID),
+			"gross_amount": grossAmount,
+		},
+	}
+	bodyBytes, err := json.Marshal(payload)
+	if err != nil {
+		return "", err
+	}
+
+	req, err := http.NewRequest("POST", url, bytes.NewBuffer(bodyBytes))
+	if err != nil {
+		return "", err
+	}
+
+	req.Header.Set("Accept", "application/json")
+	req.Header.Set("Content-Type", "application/json")
+	authHeader := "Basic " + base64.StdEncoding.EncodeToString([]byte(serverKey+":"))
+	req.Header.Set("Authorization", authHeader)
+
+	client := &http.Client{}
+	resp, err := client.Do(req)
+	if err != nil {
+		return "", err
+	}
+	defer resp.Body.Close()
+
+	var result struct {
+		Token         string   `json:"token"`
+		RedirectURL   string   `json:"redirect_url"`
+		ErrorMessages []string `json:"error_messages"`
+	}
+
+	if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
+		return "", err
+	}
+
+	if len(result.ErrorMessages) > 0 {
+		return "", fmt.Errorf("midtrans error: %v", result.ErrorMessages)
+	}
+
+	return result.Token, nil
 }
