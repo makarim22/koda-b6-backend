@@ -21,7 +21,7 @@ func NewUserRepository(db *pgxpool.Pool) *UserRepository {
 
 func (u *UserRepository) GetAll(ctx context.Context) ([]models.User, error) {
 	rows, err := u.db.Query(ctx,
-		`SELECT id, full_name, email, password, phone FROM users`)
+		`SELECT id, full_name, email, password, phone, address, profile_image FROM users`)
 	if err != nil {
 		fmt.Printf("[DEBUG] Query error: %v\n", err)
 		return nil, err
@@ -31,7 +31,7 @@ func (u *UserRepository) GetAll(ctx context.Context) ([]models.User, error) {
 	var users []models.User
 	for rows.Next() {
 		var user models.User
-		err := rows.Scan(&user.ID, &user.Name, &user.Email, &user.Password, &user.Phone)
+		err := rows.Scan(&user.ID, &user.Name, &user.Email, &user.Password, &user.Phone, &user.Address, &user.ProfileImage)
 		if err != nil {
 			fmt.Printf("[DEBUG] Scan error: %v\n", err)
 			return nil, err
@@ -53,8 +53,8 @@ func (u *UserRepository) GetByID(ctx context.Context, id int) (*models.User, err
 	var user models.User
 
 	err := u.db.QueryRow(ctx,
-		`SELECT id, full_name, email, password, phone FROM users WHERE id = $1`,
-		id).Scan(&user.ID, &user.Name, &user.Email, &user.Password, &user.Phone)
+		`SELECT id, full_name, email, password, phone, address, profile_image FROM users WHERE id = $1`,
+		id).Scan(&user.ID, &user.Name, &user.Email, &user.Password, &user.Phone, &user.Address, &user.ProfileImage)
 
 	if err != nil {
 		return nil, err
@@ -81,11 +81,11 @@ func (u *UserRepository) GetByEmail(ctx context.Context, email string) (*models.
 	var user models.User
 
 	err := u.db.QueryRow(ctx,
-		`SELECT u.id, u.full_name, u.email, u.password, ur.role 
+		`SELECT u.id, u.full_name, u.email, u.password, ur.role, u.phone, u.address, u.profile_image 
 		 FROM users u
 		 LEFT JOIN user_roles ur ON u.id = ur.user_id
 		 WHERE u.email = $1`,
-		email).Scan(&user.ID, &user.Name, &user.Email, &user.Password, &user.Role)
+		email).Scan(&user.ID, &user.Name, &user.Email, &user.Password, &user.Role, &user.Phone, &user.Address, &user.ProfileImage)
 
 	if err != nil {
 		return nil, err
@@ -129,10 +129,17 @@ func (u *UserRepository) Create(ctx context.Context, user *models.User) error {
 
 func (u *UserRepository) Update(ctx context.Context, user *models.User) error {
 	_, err := u.db.Exec(ctx,
-		`UPDATE users SET full_name = $1, email = $2, password = $3, phone = $4 
-		 WHERE id = $5`,
-		user.Name, user.Email, user.Password, user.Phone, user.ID)
+		`UPDATE users SET full_name = $1, email = $2, password = $3, phone = $4, address = $5 
+		 WHERE id = $6`,
+		user.Name, user.Email, user.Password, user.Phone, user.Address, user.ID)
 
+	return err
+}
+
+func (u *UserRepository) UpdateProfileImage(ctx context.Context, id int, imagePath string) error {
+	_, err := u.db.Exec(ctx,
+		`UPDATE users SET profile_image = $1 WHERE id = $2`,
+		imagePath, id)
 	return err
 }
 

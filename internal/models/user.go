@@ -4,13 +4,15 @@ package models
 import "time"
 
 type User struct {
-	ID       int     `json:"id" db:"id"`
-	Name     string  `json:"name" db:"full_name"`
-	Email    string  `json:"email" db:"email"`
-	Password string  `json:"password" db:"password"`
-	Role     string    `db:"role"` 
-	Phone    *string   `json:"phone" db:"phone"`
-	PointsBalance int  `json:"points_balance" db:"points_balance"`
+	ID            int     `json:"id" db:"id"`
+	Name          string  `json:"name" db:"full_name"`
+	Email         string  `json:"email" db:"email"`
+	Password      string  `json:"password" db:"password"`
+	Role          string  `db:"role"` 
+	Phone         *string `json:"phone" db:"phone"`
+	Address       *string `json:"address" db:"address"`
+	ProfileImage  *string `json:"profile_image" db:"profile_image"`
+	PointsBalance int     `json:"points_balance" db:"points_balance"`
 }
 
 type PointLedger struct {
@@ -72,11 +74,14 @@ type AuthResponse struct {
 }
 
 type UserResponse struct {
-	ID            int    `json:"id"`
-	Name          string `json:"name"`
-	Email         string `json:"email"`
-	Role          string `json:"role"`
-	PointsBalance int    `json:"points_balance"`
+	ID            int     `json:"id"`
+	Name          string  `json:"name"`
+	Email         string  `json:"email"`
+	Role          string  `json:"role"`
+	Phone         *string `json:"phone"`
+	Address       *string `json:"address"`
+	ProfileImage  *string `json:"profile_image"`
+	PointsBalance int     `json:"points_balance"`
 }
 
 const (

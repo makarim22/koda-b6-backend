@@ -36,6 +36,7 @@ func SetupRoutes(router *gin.Engine, container *di.Container) {
 			users.GET("/:id", userHandler.GetUserByID)
 			users.POST("", userHandler.CreateUser)
 			users.PUT("/:id", userHandler.UpdateUser)
+			users.POST("/:id/photo", userHandler.UploadProfilePhoto)
 			users.DELETE("/:id", userHandler.DeleteUser)
 			
 			authUsers := users.Group("")

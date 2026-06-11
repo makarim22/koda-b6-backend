@@ -146,6 +146,19 @@ func (s *UserService) UpdateUser(ctx context.Context, user *models.User) error {
 	return nil
 }
 
+func (s *UserService) UploadProfileImage(ctx context.Context, id int, imagePath string) error {
+	if id == 0 {
+		return errors.New("invalid User Id")
+	}
+
+	err := s.userRepo.UpdateProfileImage(ctx, id, imagePath)
+	if err != nil {
+		return errors.New("failed to update profile image")
+	}
+
+	return nil
+}
+
 func (s *UserService) DeleteUser(ctx context.Context, id string) error {
 	if id == "" {
 		return errors.New("user ID cannot be empty")

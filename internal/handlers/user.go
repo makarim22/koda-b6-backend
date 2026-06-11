@@ -5,6 +5,7 @@ import (
 	"koda-b6-backend/internal/models"
 	"koda-b6-backend/internal/service"
 	"net/http"
+	"os"
 	"strconv"
 
 	"github.com/gin-gonic/gin"
@@ -118,6 +119,58 @@ func (h *UserHandler) UpdateUser(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{
 		"message": "User updated successfully",
 		"data":    user,
+	})
+}
+
+func (h *UserHandler) UploadProfilePhoto(c *gin.Context) {
+	idParam := c.Param("id")
+
+	id, err := strconv.Atoi(idParam)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": "Invalid user ID format",
+		})
+		return
+	}
+
+	file, err := c.FormFile("photo")
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": "Failed to get photo from request",
+		})
+		return
+	}
+
+	uploadDir := "./uploads/profiles"
+	if _, err := os.Stat(uploadDir); os.IsNotExist(err) {
+		os.MkdirAll(uploadDir, os.ModePerm)
+	}
+
+	fileName := fmt.Sprintf("%d_%s", id, file.Filename)
+	dst := fmt.Sprintf("%s/%s", uploadDir, fileName)
+
+	if err := c.SaveUploadedFile(file, dst); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error": "Failed to save file",
+		})
+		return
+	}
+
+	imageURL := fmt.Sprintf("/uploads/profiles/%s", fileName)
+
+	err = h.userService.UploadProfileImage(c.Request.Context(), id, imageURL)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error": err.Error(),
+		})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"message": "Profile photo uploaded successfully",
+		"data": gin.H{
+			"profile_image": imageURL,
+		},
 	})
 }
 
