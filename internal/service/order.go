@@ -138,8 +138,8 @@ func (s *OrderService) CreateOrder(ctx context.Context, customerID int, req mode
 		fmt.Printf("failed to create pending payment record: %v\n", err)
 	}
 
-	// Generate Midtrans Snap Token
-	snapToken, err := s.GenerateSnapToken(orderID, payment.Amount)
+	// Generate Midtrans Snap Token and Redirect URL
+	snapToken, redirectURL, err := s.GenerateSnapToken(orderID, payment.Amount)
 	if err != nil {
 		fmt.Printf("failed to generate snap token: %v\n", err)
 	}
@@ -149,6 +149,7 @@ func (s *OrderService) CreateOrder(ctx context.Context, customerID int, req mode
 		return nil, err
 	}
 	orderResp.SnapToken = snapToken
+	orderResp.RedirectURL = redirectURL
 
 	return orderResp, nil
 }
@@ -336,7 +337,7 @@ func (s *OrderService) GetOrderStats(ctx context.Context) (map[string]int, error
 	return stats, nil
 }
 
-func (s *OrderService) GenerateSnapToken(orderID int, grossAmount float64) (string, error) {
+func (s *OrderService) GenerateSnapToken(orderID int, grossAmount float64) (string, string, error) {
 	serverKey := os.Getenv("MIDTRANS_SERVER_KEY")
 	if serverKey == "" {
 		serverKey = "test-server-key"
@@ -352,12 +353,12 @@ func (s *OrderService) GenerateSnapToken(orderID int, grossAmount float64) (stri
 	}
 	bodyBytes, err := json.Marshal(payload)
 	if err != nil {
-		return "", err
+		return "", "", err
 	}
 
 	req, err := http.NewRequest("POST", url, bytes.NewBuffer(bodyBytes))
 	if err != nil {
-		return "", err
+		return "", "", err
 	}
 
 	req.Header.Set("Accept", "application/json")
@@ -368,7 +369,7 @@ func (s *OrderService) GenerateSnapToken(orderID int, grossAmount float64) (stri
 	client := &http.Client{}
 	resp, err := client.Do(req)
 	if err != nil {
-		return "", err
+		return "", "", err
 	}
 	defer resp.Body.Close()
 
@@ -379,12 +380,12 @@ func (s *OrderService) GenerateSnapToken(orderID int, grossAmount float64) (stri
 	}
 
 	if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
-		return "", err
+		return "", "", err
 	}
 
 	if len(result.ErrorMessages) > 0 {
-		return "", fmt.Errorf("midtrans error: %v", result.ErrorMessages)
+		return "", "", fmt.Errorf("midtrans error: %v", result.ErrorMessages)
 	}
 
-	return result.Token, nil
+	return result.Token, result.RedirectURL, nil
 }

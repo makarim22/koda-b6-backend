@@ -81,7 +81,7 @@ func (u *UserRepository) GetByEmail(ctx context.Context, email string) (*models.
 	var user models.User
 
 	err := u.db.QueryRow(ctx,
-		`SELECT u.id, u.full_name, u.email, u.password, ur.role, u.phone, u.address, u.profile_image 
+		`SELECT u.id, u.full_name, u.email, u.password, COALESCE(ur.role, 'user') as role, u.phone, u.address, u.profile_image 
 		 FROM users u
 		 LEFT JOIN user_roles ur ON u.id = ur.user_id
 		 WHERE u.email = $1`,
