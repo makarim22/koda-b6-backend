@@ -93,6 +93,17 @@ func (r *ReviewsRepository) UpdateReview(ctx context.Context, review *models.Rev
 	return err
 }
 
+func (r *ReviewsRepository) DeleteReview(ctx context.Context, id int) error {
+	cmdTag, err := r.db.Exec(ctx, `DELETE FROM user_review WHERE id=$1`, id)
+	if err != nil {
+		return err
+	}
+	if cmdTag.RowsAffected() == 0 {
+		return errors.New("review not found")
+	}
+	return nil
+}
+
 func (r *ReviewsRepository) GetAverageRating(ctx context.Context, productID int) (float64, error) {
 	query := `SELECT AVG(rating) FROM user_review WHERE product_id = $1`
 	var rating sql.NullFloat64

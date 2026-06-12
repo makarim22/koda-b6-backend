@@ -123,6 +123,26 @@ func (h *ReviewsHandler) UpdateReview(c *gin.Context) {
 	})
 }
 
+func (h *ReviewsHandler) DeleteReview(c *gin.Context) {
+	reviewID := c.Param("id")
+	id, err := strconv.Atoi(reviewID)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid ID format"})
+		return
+	}
+
+	err = h.reviewsService.DeleteReview(c.Request.Context(), id)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error": err.Error(),
+		})
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{
+		"message": "berhasil menghapus data review",
+	})
+}
+
 func (h *ReviewsHandler) GetByProductId(c *gin.Context) {
 	productID, err := strconv.Atoi(c.Param("id"))
 	if err != nil {

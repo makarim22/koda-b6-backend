@@ -135,6 +135,7 @@ func SetupRoutes(router *gin.Engine, container *di.Container) {
 		{
 			authReviews.POST("", reviewsHandler.CreateReview)
 			authReviews.PUT("/:id", reviewsHandler.UpdateReview)
+			authReviews.DELETE("/:id", reviewsHandler.DeleteReview)
 		}
 	}
 	productCategories := api.Group("/product-categories")
@@ -170,6 +171,10 @@ func SetupRoutes(router *gin.Engine, container *di.Container) {
 	vouchers := api.Group("/vouchers")
 	vouchers.Use(middleware.AuthMiddleware())
 	{
+		vouchers.GET("", voucherHandler.GetAllVouchers)
+		vouchers.POST("", voucherHandler.CreateVoucher)
+		vouchers.PUT("/:id", voucherHandler.UpdateVoucher)
+		vouchers.DELETE("/:id", voucherHandler.DeleteVoucher)
 		vouchers.POST("/validate", voucherHandler.ValidateVoucher)
 	}
 

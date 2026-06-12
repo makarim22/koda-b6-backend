@@ -60,3 +60,19 @@ func (s *VoucherService) CalculateDiscount(ctx context.Context, code string, sub
 
 	return voucher, discountAmount, nil
 }
+
+func (s *VoucherService) GetAll(ctx context.Context) ([]models.Voucher, error) {
+	return s.voucherRepo.GetAll(ctx)
+}
+
+func (s *VoucherService) Create(ctx context.Context, voucher *models.Voucher) error {
+	return s.voucherRepo.Create(ctx, voucher)
+}
+
+func (s *VoucherService) Update(ctx context.Context, id int, voucher *models.Voucher) error {
+	return s.voucherRepo.Update(ctx, id, voucher)
+}
+
+func (s *VoucherService) Delete(ctx context.Context, id int) error {
+	return s.voucherRepo.Delete(ctx, id)
+}

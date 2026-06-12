@@ -85,6 +85,14 @@ func (s *ReviewsService) UpdateReview(ctx context.Context, review *models.Review
 	return nil
 }
 
+func (s *ReviewsService) DeleteReview(ctx context.Context, id int) error {
+	err := s.reviewsRepo.DeleteReview(ctx, id)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
 func (s *ReviewsService) GetByProductId(ctx context.Context, productID int, limit, offset int) ([]models.ReviewsResponse, error) {
 	if limit <= 0 {
 		limit = 10
