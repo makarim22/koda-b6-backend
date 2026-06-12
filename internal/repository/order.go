@@ -269,6 +269,65 @@ func (r *OrderRepository) GetUserOrders(ctx context.Context, customerID int, lim
 }
 
 
+func (r *OrderRepository) GetAllOrders(ctx context.Context, limit, offset int) ([]models.OrderResponse, error) {
+	query := `
+		SELECT id, customer_id, order_date, subtotal, tax, delivery_fee, status, discount_amount, points_used, created_at
+		FROM orders
+		ORDER BY created_at DESC
+		LIMIT $1 OFFSET $2
+	`
+
+	log.Printf("[GetAllOrders] Starting query limit: %d, offset: %d", limit, offset)
+
+	rows, err := r.db.Query(ctx, query, limit, offset)
+	if err != nil {
+		log.Printf("[GetAllOrders] Query failed: %v", err)
+		return nil, fmt.Errorf("failed to get all orders: %w", err)
+	}
+	defer rows.Close()
+
+	var orders []models.OrderResponse
+	orderCount := 0
+
+	for rows.Next() {
+		var order models.OrderResponse
+		err := rows.Scan(
+			&order.ID,
+			&order.CustomerID,
+			&order.OrderDate,
+			&order.Subtotal,
+			&order.Tax,
+			&order.DeliveryFee,
+			&order.Status,
+			&order.DiscountAmount,
+			&order.PointsUsed,
+			&order.CreatedAt,
+		)
+		if err != nil {
+			log.Printf("[GetAllOrders] Scan failed for order: %v", err)
+			return nil, fmt.Errorf("failed to scan order: %w", err)
+		}
+
+		// Fetch order items for this order
+		items, err := r.GetOrderDetails(ctx, order.ID)
+		if err != nil {
+			log.Printf("[GetAllOrders] Failed to fetch items for order %d: %v", order.ID, err)
+			return nil, fmt.Errorf("failed to fetch items for order %d: %w", order.ID, err)
+		}
+
+		order.Items = items
+		orders = append(orders, order)
+		orderCount++
+	}
+
+	if err = rows.Err(); err != nil {
+		log.Printf("[GetAllOrders] Iterator error: %v", err)
+		return nil, fmt.Errorf("error iterating orders: %w", err)
+	}
+
+	return orders, nil
+}
+
 func (r *OrderRepository) GetDailySalesData(ctx context.Context) ([]models.DailySalesData, error) {
 	query := `
 		SELECT 

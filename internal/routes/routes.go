@@ -108,6 +108,13 @@ func SetupRoutes(router *gin.Engine, container *di.Container) {
 			}
 		}
 	}
+	{
+		admin := api.Group("/admin")
+		admin.Use(middleware.AuthMiddleware())
+		{
+			admin.GET("/orders", orderHandler.GetAllOrders)
+		}
+	}
 	cartGroup := router.Group("/cart")
 	cartGroup.Use(middleware.AuthMiddleware())
 	{

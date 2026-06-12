@@ -234,6 +234,40 @@ func (s *OrderService) GetUserOrders(ctx context.Context, customerID int, limit,
 	return responses, nil
 }
 
+func (s *OrderService) GetAllOrders(ctx context.Context, limit, offset int) ([]models.OrderResponse, error) {
+	if limit <= 0 || limit > 100 {
+		limit = 10
+	}
+	if offset < 0 {
+		offset = 0
+	}
+
+	orders, err := s.orderRepo.GetAllOrders(ctx, limit, offset)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get all orders: %w", err)
+	}
+
+	var responses []models.OrderResponse
+	for _, order := range orders {
+		response := models.OrderResponse{
+			ID:             order.ID,
+			CustomerID:     order.CustomerID,
+			OrderDate:      order.OrderDate,
+			Subtotal:       order.Subtotal,
+			Tax:            order.Tax,
+			DeliveryFee:    order.DeliveryFee,
+			DiscountAmount: order.DiscountAmount,
+			Total:          order.Subtotal + order.Tax + order.DeliveryFee - order.DiscountAmount,
+			Status:         order.Status,
+			CreatedAt:      order.CreatedAt,
+			Items:          order.Items,
+		}
+		responses = append(responses, response)
+	}
+
+	return responses, nil
+}
+
 func (s *OrderService) UpdateOrderStatus(ctx context.Context, orderID int, customerID int, newStatus string) error {
 	order, err := s.orderRepo.GetOrderByID(ctx, orderID)
 	if err != nil {

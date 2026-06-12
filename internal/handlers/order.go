@@ -134,6 +134,28 @@ func (h *OrderHandler) GetUserOrders(c *gin.Context) {
 	})
 }
 
+func (h *OrderHandler) GetAllOrders(c *gin.Context) {
+	limit, _ := strconv.Atoi(c.DefaultQuery("limit", "100"))
+	offset, _ := strconv.Atoi(c.DefaultQuery("offset", "0"))
+
+	ctx := c.Request.Context()
+
+	orders, err := h.orderService.GetAllOrders(ctx, limit, offset)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, models.ApiResponse{
+			Success: false,
+			Message: err.Error(),
+		})
+		return
+	}
+
+	c.JSON(http.StatusOK, models.ApiResponse{
+		Success: true,
+		Message: "All orders retrieved successfully",
+		Data:    orders,
+	})
+}
+
 func (h *OrderHandler) UpdateOrderStatus(c *gin.Context) {
 	orderID, err := strconv.Atoi(c.Param("id"))
 	if err != nil {
