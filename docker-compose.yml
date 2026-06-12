@@ -8,6 +8,8 @@ services:
     container_name: golang_backend
     ports:
       - "8081:8080"
+    env_file:
+      - .env
     environment:
       # Database configuration - UPDATED to match Node.js setup
       - DB_HOST=backend-js-postgres-1

@@ -122,3 +122,45 @@ func (s *AuthService) Login(ctx context.Context, email, password string) (*model
 		Role: user.Role,
 	}, token, nil
 }
+
+func (s *AuthService) OAuthLogin(ctx context.Context, email, name, profileImage string) (*models.User, string, error) {
+	user, err := s.userRepo.GetByEmail(ctx, email)
+	
+	if err != nil && !errors.Is(err, sql.ErrNoRows) {
+		// Just to be safe, if GetByEmail returns a different error than NoRows, but actually we use pgxpool which returns pgx.ErrNoRows or standard err.
+		// Wait, user.go repository does not return sql.ErrNoRows because it's pgx. 
+		// Actually, GetByEmail in pgx returns pgx.ErrNoRows. If user is nil, it wasn't found.
+	}
+
+	if user == nil || err != nil {
+		// User does not exist, create them
+		dummyPassword, _ := lib.HashPassword("") // Set a dummy password
+		newUser := &models.User{
+			Name:         name,
+			Email:        email,
+			Password:     dummyPassword,
+			Role:         models.RoleUser,
+		}
+		if profileImage != "" {
+			newUser.ProfileImage = &profileImage
+		}
+		
+		err = s.userRepo.Create(ctx, newUser)
+		if err != nil {
+			return nil, "", fmt.Errorf("failed to create oauth user: %w", err)
+		}
+		user = newUser
+	}
+
+	// Generate JWT token
+	token, err := lib.GenerateJWT(user.ID, user.Email)
+	if err != nil {
+		return nil, "", fmt.Errorf("failed to generate token: %w", err)
+	}
+
+	return &models.User{
+		ID:    user.ID,
+		Email: user.Email,
+		Role:  user.Role,
+	}, token, nil
+}

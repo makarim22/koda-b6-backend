@@ -14,6 +14,7 @@ func SetupRoutes(router *gin.Engine, container *di.Container) {
 	productHandler := container.ProductHandler()
 	forgotPasswordHandler := container.ForgotPasswordHandler()
 	authHandler := container.AuthHandler()
+	oauthHandler := container.OAuthHandler()
 	orderHandler := container.OrderHandler()
 	cartHandler := container.CartHandler()
 	reviewsHandler := container.ReviewsHandler()
@@ -81,7 +82,10 @@ func SetupRoutes(router *gin.Engine, container *di.Container) {
 			auth.POST("/reset-password", forgotPasswordHandler.ResetPassword)
 			auth.POST("/register", authHandler.Register)
 			auth.POST("/login", authHandler.Login)
-
+			auth.GET("/google", oauthHandler.LoginGoogle)
+			auth.GET("/google/callback", oauthHandler.CallbackGoogle)
+			auth.GET("/github", oauthHandler.LoginGithub)
+			auth.GET("/github/callback", oauthHandler.CallbackGithub)
 		}
 	}
 	{
