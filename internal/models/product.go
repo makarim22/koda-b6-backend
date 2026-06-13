@@ -6,9 +6,10 @@ type Product struct {
 	Description string         `json:"description" db:"description"`
 	BasePrice   int            `json:"base_price" db:"base_price"`
 	Stock       int            `json:"stock" db:"stock"`
-	Images      []ProductImage `json:"images" db:"-"`
-	Variants    []Variant        `json:"variants" db:"-"`
-	Sizes       []Size           `json:"sizes" db:"-"`
+	Images      []ProductImage    `json:"images" db:"-"`
+	Variants    []Variant         `json:"variants" db:"-"`
+	Sizes       []Size            `json:"sizes" db:"-"`
+	Categories  []ProductCategory `json:"categories" db:"-"`
 }
 
 type ProductDetail struct {

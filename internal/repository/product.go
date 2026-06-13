@@ -248,6 +248,53 @@ func (p *ProductRepository) GetAll(ctx context.Context) ([]models.Product, error
 
 	log.Printf("✅ [QUERY 4 COMPLETE] Loaded %d sizes for products", sizeCount)
 
+	// Query 5: Get all categories for these products
+	log.Printf("📡 [QUERY 5] Starting to fetch categories for %d products...", len(products))
+	categoryRows, err := p.db.Query(ctx, `
+		SELECT 
+			pcm.product_id,
+			c.id,
+			c.name
+		FROM product_category_map pcm
+		JOIN product_category c ON pcm.category_id = c.id
+		WHERE pcm.product_id = ANY($1)
+		ORDER BY pcm.product_id
+	`, productIDs)
+	if err != nil {
+		log.Printf("❌ [QUERY 5 ERROR] Failed to query categories: %v", err)
+		return nil, fmt.Errorf("failed to query categories: %w", err)
+	}
+	defer categoryRows.Close()
+
+	categoryCount := 0
+	for categoryRows.Next() {
+		var (
+			productID int
+			catID     int
+			catName   string
+		)
+		err := categoryRows.Scan(&productID, &catID, &catName)
+		if err != nil {
+			log.Printf("❌ [SCAN CATEGORY ERROR] Failed to scan category: %v", err)
+			return nil, fmt.Errorf("failed to scan category: %w", err)
+		}
+
+		if product, exists := productMap[productID]; exists {
+			product.Categories = append(product.Categories, models.ProductCategory{
+				ID:   catID,
+				Name: catName,
+			})
+			categoryCount++
+		}
+	}
+
+	if err = categoryRows.Err(); err != nil {
+		log.Printf("❌ [ITERATION CATEGORY ERROR] Error iterating categories: %v", err)
+		return nil, fmt.Errorf("error iterating categories: %w", err)
+	}
+
+	log.Printf("✅ [QUERY 5 COMPLETE] Loaded %d categories for products", categoryCount)
+
 	// Cache the results
 	log.Printf("💾 [CACHE SET] Caching %d products with key '%s' for 10 minutes", len(products), cacheKey)
 	if err := p.cache.Set(ctx, cacheKey, products, 10*time.Minute); err != nil {
