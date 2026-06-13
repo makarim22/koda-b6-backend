@@ -39,7 +39,7 @@ func (s *SizeService) CreateSize (ctx context.Context, size *models.Size) error 
 func (s * SizeService) GetAllSizes (ctx context.Context) ([]models.Size, error){
 	sizes, err := s.repo.GetAll(ctx)
 	if err != nil {
-		return nil, fmt.Errorf("cannot retreive sizes: %w", err)
+		return nil, fmt.Errorf("cannot retrieve sizes: %w", err)
 	}
 	return sizes, nil
 }
